@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'761b73c02501aa4f30a953abc0f7f5837bfa9059e42df8ef85ee1895cd908f4a'>;
+  StorageHashBase<'c161f1f1ec323657313508cb9e6a0d8fea489a4d368a9b0008a43ea329719724'>;
 export type ExecutionHash =
-  ExecutionHashBase<'84a91b89e3f88b6d211ee9e0f9121630fd2eddfacc70d7ea8d24f3731c814ee0'>;
+  ExecutionHashBase<'9304b67af075352ae12236d3f97a943114e4eb6e13e93bcb40da990b348447e7'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -265,25 +265,6 @@ export type FieldOutputTypes = {
       readonly description: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
-    readonly StatisticDefinition: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly sportId: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly code: CodecTypes['pg/text@1']['output'];
-      readonly dataType: CodecTypes['pg/text@1']['output'];
-      readonly unit: CodecTypes['pg/text@1']['output'] | null;
-      readonly description: CodecTypes['pg/text@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
-    readonly StatisticValue: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly playerId: CodecTypes['pg/text@1']['output'] | null;
-      readonly teamId: CodecTypes['pg/text@1']['output'] | null;
-      readonly statisticId: CodecTypes['pg/text@1']['output'];
-      readonly value: CodecTypes['pg/float8@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
     readonly Team: {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
@@ -335,25 +316,6 @@ export type FieldInputTypes = {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly description: CodecTypes['pg/text@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly StatisticDefinition: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly sportId: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly code: CodecTypes['pg/text@1']['input'];
-      readonly dataType: CodecTypes['pg/text@1']['input'];
-      readonly unit: CodecTypes['pg/text@1']['input'] | null;
-      readonly description: CodecTypes['pg/text@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly StatisticValue: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly playerId: CodecTypes['pg/text@1']['input'] | null;
-      readonly teamId: CodecTypes['pg/text@1']['input'] | null;
-      readonly statisticId: CodecTypes['pg/text@1']['input'];
-      readonly value: CodecTypes['pg/float8@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly Team: {
@@ -409,25 +371,6 @@ export type StorageColumnTypes = {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
     };
-    readonly statisticDefinition: {
-      readonly code: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly dataType: CodecTypes['pg/text@1']['output'];
-      readonly description: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly sportId: CodecTypes['pg/text@1']['output'];
-      readonly unit: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly statisticValue: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly playerId: CodecTypes['pg/text@1']['output'] | null;
-      readonly statisticId: CodecTypes['pg/text@1']['output'];
-      readonly teamId: CodecTypes['pg/text@1']['output'] | null;
-      readonly value: CodecTypes['pg/float8@1']['output'];
-    };
     readonly team: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly id: CodecTypes['pg/text@1']['output'];
@@ -481,25 +424,6 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
     };
-    readonly statisticDefinition: {
-      readonly code: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly dataType: CodecTypes['pg/text@1']['input'];
-      readonly description: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly sportId: CodecTypes['pg/text@1']['input'];
-      readonly unit: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly statisticValue: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly playerId: CodecTypes['pg/text@1']['input'] | null;
-      readonly statisticId: CodecTypes['pg/text@1']['input'];
-      readonly teamId: CodecTypes['pg/text@1']['input'] | null;
-      readonly value: CodecTypes['pg/float8@1']['input'];
-    };
     readonly team: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly id: CodecTypes['pg/text@1']['input'];
@@ -545,10 +469,9 @@ export namespace Models {
     description: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     matches: public_Match[];
-    statisticDefinitions: public_StatisticDefinition[];
     teams: public_Team[];
     tournaments: public_Tournament[];
-    readonly [RelationKeys]?: 'matches' | 'statisticDefinitions' | 'teams' | 'tournaments';
+    readonly [RelationKeys]?: 'matches' | 'teams' | 'tournaments';
   };
   export type public_Tournament = {
     id: CodecTypes['pg/text@1']['output'];
@@ -571,10 +494,8 @@ export namespace Models {
     homeMatches: public_Match[];
     players: public_Player[];
     sport: public_Sport;
-    statisticValues: public_StatisticValue[];
     tournaments: public_TournamentTeam[];
-    readonly [RelationKeys]?:
-      'awayMatches' | 'homeMatches' | 'players' | 'sport' | 'statisticValues' | 'tournaments';
+    readonly [RelationKeys]?: 'awayMatches' | 'homeMatches' | 'players' | 'sport' | 'tournaments';
   };
   export type public_Player = {
     id: CodecTypes['pg/text@1']['output'];
@@ -582,10 +503,9 @@ export namespace Models {
     teamId: CodecTypes['pg/text@1']['output'];
     jerseyNo: CodecTypes['pg/int4@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    statisticValues: public_StatisticValue[];
     team: public_Team;
     user: public_User;
-    readonly [RelationKeys]?: 'statisticValues' | 'team' | 'user';
+    readonly [RelationKeys]?: 'team' | 'user';
   };
   export type public_TournamentTeam = {
     id: CodecTypes['pg/text@1']['output'];
@@ -607,36 +527,8 @@ export namespace Models {
     awayTeam: public_Team;
     homeTeam: public_Team;
     sport: public_Sport;
-    statisticValues: public_StatisticValue[];
     tournament: public_Tournament | null;
-    readonly [RelationKeys]?: 'awayTeam' | 'homeTeam' | 'sport' | 'statisticValues' | 'tournament';
-  };
-  export type public_StatisticDefinition = {
-    id: CodecTypes['pg/text@1']['output'];
-    sportId: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
-    code: CodecTypes['pg/text@1']['output'];
-    dataType: CodecTypes['pg/text@1']['output'];
-    unit: CodecTypes['pg/text@1']['output'] | null;
-    description: CodecTypes['pg/text@1']['output'] | null;
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    sport: public_Sport;
-    values: public_StatisticValue[];
-    readonly [RelationKeys]?: 'sport' | 'values';
-  };
-  export type public_StatisticValue = {
-    id: CodecTypes['pg/text@1']['output'];
-    matchId: CodecTypes['pg/text@1']['output'];
-    playerId: CodecTypes['pg/text@1']['output'] | null;
-    teamId: CodecTypes['pg/text@1']['output'] | null;
-    statisticId: CodecTypes['pg/text@1']['output'];
-    value: CodecTypes['pg/float8@1']['output'];
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    match: public_Match;
-    player: public_Player | null;
-    statistic: public_StatisticDefinition;
-    team: public_Team | null;
-    readonly [RelationKeys]?: 'match' | 'player' | 'statistic' | 'team';
+    readonly [RelationKeys]?: 'awayTeam' | 'homeTeam' | 'sport' | 'tournament';
   };
 }
 
@@ -649,8 +541,6 @@ export declare const models: {
     Player: Models.public_Player;
     TournamentTeam: Models.public_TournamentTeam;
     Match: Models.public_Match;
-    StatisticDefinition: Models.public_StatisticDefinition;
-    StatisticValue: Models.public_StatisticValue;
   };
 };
 
@@ -900,197 +790,6 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
-            readonly statisticDefinition: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly sportId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly name: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly code: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly dataType: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'NUMBER'>;
-                  };
-                };
-                readonly unit: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly description: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['sportId', 'code'] }];
-              indexes: readonly [
-                {
-                  readonly name: 'statisticDefinition_sportId_idx_2a876157';
-                  readonly prefix: 'statisticDefinition_sportId_idx';
-                  readonly columns: readonly ['sportId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticDefinition';
-                    readonly columns: readonly ['sportId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'sport';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
-            readonly statisticValue: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly matchId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly playerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly teamId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly statisticId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly value: {
-                  readonly nativeType: 'float8';
-                  readonly codecId: 'pg/float8@1';
-                  readonly nullable: false;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'statisticValue_matchId_idx_4caf5ecc';
-                  readonly prefix: 'statisticValue_matchId_idx';
-                  readonly columns: readonly ['matchId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'statisticValue_playerId_idx_710cf1aa';
-                  readonly prefix: 'statisticValue_playerId_idx';
-                  readonly columns: readonly ['playerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'statisticValue_teamId_idx_f2b72ab3';
-                  readonly prefix: 'statisticValue_teamId_idx';
-                  readonly columns: readonly ['teamId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'statisticValue_statisticId_idx_0bd582cb';
-                  readonly prefix: 'statisticValue_statisticId_idx';
-                  readonly columns: readonly ['statisticId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticValue';
-                    readonly columns: readonly ['matchId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'match';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticValue';
-                    readonly columns: readonly ['playerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticValue';
-                    readonly columns: readonly ['teamId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'team';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticValue';
-                    readonly columns: readonly ['statisticId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'statisticDefinition';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly team: {
               columns: {
                 readonly id: {
@@ -1322,14 +1021,6 @@ type ContractBase = Omit<
       readonly model: 'TournamentTeam';
     };
     readonly match: { readonly namespace: 'public' & NamespaceId; readonly model: 'Match' };
-    readonly statisticDefinition: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'StatisticDefinition';
-    };
-    readonly statisticValue: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'StatisticValue';
-    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -1407,17 +1098,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly statisticValues: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticValue';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['matchId'];
-                };
-              };
               readonly tournament: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -1473,17 +1153,6 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly statisticValues: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticValue';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['playerId'];
-                };
-              };
               readonly team: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
                 readonly cardinality: 'N:1';
@@ -1549,17 +1218,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['sportId'];
                 };
               };
-              readonly statisticDefinitions: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticDefinition';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['sportId'];
-                };
-              };
               readonly teams: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
                 readonly cardinality: '1:N';
@@ -1587,179 +1245,6 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly name: { readonly column: 'name' };
                 readonly description: { readonly column: 'description' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly StatisticDefinition: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly sportId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly name: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly code: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly dataType: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly unit: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly description: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly sport: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Sport';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['sportId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly values: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticValue';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['statisticId'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'statisticDefinition';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly sportId: { readonly column: 'sportId' };
-                readonly name: { readonly column: 'name' };
-                readonly code: { readonly column: 'code' };
-                readonly dataType: { readonly column: 'dataType' };
-                readonly unit: { readonly column: 'unit' };
-                readonly description: { readonly column: 'description' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly StatisticValue: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly matchId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly playerId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly teamId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly statisticId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly value: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/float8@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly match: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Match';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['matchId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly player: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['playerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly statistic: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticDefinition';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['statisticId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly team: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['teamId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'statisticValue';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly matchId: { readonly column: 'matchId' };
-                readonly playerId: { readonly column: 'playerId' };
-                readonly teamId: { readonly column: 'teamId' };
-                readonly statisticId: { readonly column: 'statisticId' };
-                readonly value: { readonly column: 'value' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };
@@ -1830,17 +1315,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['sportId'];
                   readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly statisticValues: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'StatisticValue';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['teamId'];
                 };
               };
               readonly tournaments: {
@@ -2097,22 +1571,6 @@ type ContractBase = Omit<
           readonly ref: {
             readonly namespace: 'public';
             readonly table: 'sport';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
-            readonly table: 'statisticDefinition';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
-            readonly table: 'statisticValue';
             readonly column: 'id';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };

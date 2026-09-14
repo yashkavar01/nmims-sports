@@ -4,11 +4,121 @@ model User {
   email     String   @unique
   role      String   @default("STUDENT")
   createdAt DateTime @default(now())
+
+  players   Player[]
 }
 
 model Sport {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id                   String                @id @default(uuid())
+  name                 String                @unique
+  description          String?
+  createdAt            DateTime              @default(now())
+
+  teams                Team[]
+  tournaments          Tournament[]
+  matches              Match[]
+  statisticDefinitions StatisticDefinition[]
+}
+
+model Tournament {
+  id        String           @id @default(uuid())
+  name      String
+  sportId   String
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime         @default(now())
+
+  sport     Sport            @relation(fields:[sportId], references:[id])
+  teams     TournamentTeam[]
+  matches   Match[]
+}
+
+model Team {
+  id              String           @id @default(uuid())
+  name            String
+  sportId         String
+  createdAt       DateTime         @default(now())
+
+  sport           Sport            @relation(fields:[sportId], references:[id])
+  players         Player[]
+  tournaments     TournamentTeam[]
+  homeMatches     Match[]          @relation("HomeTeam")
+  awayMatches     Match[]          @relation("AwayTeam")
+  statisticValues StatisticValue[]
+}
+
+model Player {
+  id              String           @id @default(uuid())
+  userId          String
+  teamId          String
+  jerseyNo        Int?
+  createdAt       DateTime         @default(now())
+
+  user            User             @relation(fields:[userId], references:[id])
+  team            Team             @relation(fields:[teamId], references:[id])
+  statisticValues StatisticValue[]
+}
+
+model TournamentTeam {
+  id           String     @id @default(uuid())
+  tournamentId String
+  teamId       String
+
+  tournament   Tournament @relation(fields:[tournamentId], references:[id])
+  team         Team       @relation(fields:[teamId], references:[id])
+
+  @@unique([tournamentId, teamId])
+}
+
+model Match {
+  id              String           @id @default(uuid())
+  sportId         String
+  tournamentId    String?
+  homeTeamId      String
+  awayTeamId      String
+  scheduledAt     DateTime?
+  status          String           @default("SCHEDULED")
+  createdAt       DateTime         @default(now())
+
+  sport           Sport            @relation(fields:[sportId], references:[id])
+  tournament      Tournament?      @relation(fields:[tournamentId], references:[id])
+  homeTeam        Team             @relation("HomeTeam", fields:[homeTeamId], references:[id])
+  awayTeam        Team             @relation("AwayTeam", fields:[awayTeamId], references:[id])
+  statisticValues StatisticValue[]
+}
+
+model StatisticDefinition {
+  id          String           @id @default(uuid())
+  sportId     String
+  name        String
+  code        String
+  dataType    String           @default("NUMBER")
+  unit        String?
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime         @default(now())
+
+  sport       Sport            @relation(fields:[sportId], references:[id])
+  values      StatisticValue[]
+
+  @@unique([sportId, code])
+}
+
+model StatisticValue {
+  id          String              @id @default(uuid())
+  matchId     String
+  playerId    String?
+  teamId      String?
+  statisticId String
+  value       Float
+  createdAt   DateTime            @default(now())
+
+  match       Match               @relation(fields:[matchId], references:[id])
+  player      Player?             @relation(fields:[playerId], references:[id])
+  team        Team?               @relation(fields:[teamId], references:[id])
+  statistic   StatisticDefinition @relation(fields:[statisticId], references:[id])
+
+  @@index([matchId])
+  @@index([playerId])
+  @@index([teamId])
+  @@index([statisticId])
 }
