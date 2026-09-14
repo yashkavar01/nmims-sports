@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8d7a45405733e02c32af9f901424d445d82368bbe9dee0954f7048c1306fdb66'>;
+  StorageHashBase<'c86e2507a8b662215a11e90f5c2cba8a288372a1a130f54e2a0ddd31ec306aa2'>;
 export type ExecutionHash =
-  ExecutionHashBase<'94e1aa163005375f66515229b6c2bfcef9b1b407b15f3a0c2d682d706f465ff8'>;
+  ExecutionHashBase<'9d5113360da53679c10f5102fb8dc63aa8394b842d322a09223c26ee88b892de'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -242,45 +242,6 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
-    readonly CricketDelivery: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly inningsId: CodecTypes['pg/text@1']['output'];
-      readonly overId: CodecTypes['pg/text@1']['output'];
-      readonly ballNumber: CodecTypes['pg/int4@1']['output'];
-      readonly legalBall: CodecTypes['pg/bool@1']['output'];
-      readonly strikerId: CodecTypes['pg/text@1']['output'];
-      readonly nonStrikerId: CodecTypes['pg/text@1']['output'];
-      readonly bowlerId: CodecTypes['pg/text@1']['output'];
-      readonly runsOffBat: CodecTypes['pg/int4@1']['output'];
-      readonly extras: CodecTypes['pg/int4@1']['output'];
-      readonly totalRuns: CodecTypes['pg/int4@1']['output'];
-      readonly extraType: CodecTypes['pg/text@1']['output'] | null;
-      readonly wicket: CodecTypes['pg/bool@1']['output'];
-      readonly wicketType: CodecTypes['pg/text@1']['output'] | null;
-      readonly dismissedPlayerId: CodecTypes['pg/text@1']['output'] | null;
-      readonly data: CodecTypes['pg/text@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
-    readonly CricketInnings: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly inningsNumber: CodecTypes['pg/int4@1']['output'];
-      readonly battingTeamId: CodecTypes['pg/text@1']['output'];
-      readonly bowlingTeamId: CodecTypes['pg/text@1']['output'];
-      readonly runs: CodecTypes['pg/int4@1']['output'];
-      readonly wickets: CodecTypes['pg/int4@1']['output'];
-      readonly legalBalls: CodecTypes['pg/int4@1']['output'];
-      readonly target: CodecTypes['pg/int4@1']['output'] | null;
-      readonly status: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
-    readonly CricketOver: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly inningsId: CodecTypes['pg/text@1']['output'];
-      readonly overNumber: CodecTypes['pg/int4@1']['output'];
-      readonly bowlerId: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
     readonly Match: {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly sportId: CodecTypes['pg/text@1']['output'];
@@ -292,10 +253,6 @@ export type FieldOutputTypes = {
       readonly venue: CodecTypes['pg/text@1']['output'] | null;
       readonly round: CodecTypes['pg/text@1']['output'] | null;
       readonly matchNumber: CodecTypes['pg/int4@1']['output'] | null;
-      readonly format: CodecTypes['pg/text@1']['output'] | null;
-      readonly maxOvers: CodecTypes['pg/int4@1']['output'] | null;
-      readonly tossWinnerTeamId: CodecTypes['pg/text@1']['output'] | null;
-      readonly tossDecision: CodecTypes['pg/text@1']['output'] | null;
       readonly status: CodecTypes['pg/text@1']['output'];
       readonly result: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -308,15 +265,6 @@ export type FieldOutputTypes = {
       readonly type: CodecTypes['pg/text@1']['output'];
       readonly data: CodecTypes['pg/text@1']['output'] | null;
       readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
-    readonly MatchPlayer: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly playerId: CodecTypes['pg/text@1']['output'];
-      readonly teamId: CodecTypes['pg/text@1']['output'];
-      readonly role: CodecTypes['pg/text@1']['output'];
-      readonly position: CodecTypes['pg/int4@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly MatchScorerAssignment: {
       readonly id: CodecTypes['pg/text@1']['output'];
@@ -408,45 +356,6 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
-    readonly CricketDelivery: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly inningsId: CodecTypes['pg/text@1']['input'];
-      readonly overId: CodecTypes['pg/text@1']['input'];
-      readonly ballNumber: CodecTypes['pg/int4@1']['input'];
-      readonly legalBall: CodecTypes['pg/bool@1']['input'];
-      readonly strikerId: CodecTypes['pg/text@1']['input'];
-      readonly nonStrikerId: CodecTypes['pg/text@1']['input'];
-      readonly bowlerId: CodecTypes['pg/text@1']['input'];
-      readonly runsOffBat: CodecTypes['pg/int4@1']['input'];
-      readonly extras: CodecTypes['pg/int4@1']['input'];
-      readonly totalRuns: CodecTypes['pg/int4@1']['input'];
-      readonly extraType: CodecTypes['pg/text@1']['input'] | null;
-      readonly wicket: CodecTypes['pg/bool@1']['input'];
-      readonly wicketType: CodecTypes['pg/text@1']['input'] | null;
-      readonly dismissedPlayerId: CodecTypes['pg/text@1']['input'] | null;
-      readonly data: CodecTypes['pg/text@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly CricketInnings: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly inningsNumber: CodecTypes['pg/int4@1']['input'];
-      readonly battingTeamId: CodecTypes['pg/text@1']['input'];
-      readonly bowlingTeamId: CodecTypes['pg/text@1']['input'];
-      readonly runs: CodecTypes['pg/int4@1']['input'];
-      readonly wickets: CodecTypes['pg/int4@1']['input'];
-      readonly legalBalls: CodecTypes['pg/int4@1']['input'];
-      readonly target: CodecTypes['pg/int4@1']['input'] | null;
-      readonly status: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly CricketOver: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly inningsId: CodecTypes['pg/text@1']['input'];
-      readonly overNumber: CodecTypes['pg/int4@1']['input'];
-      readonly bowlerId: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
     readonly Match: {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly sportId: CodecTypes['pg/text@1']['input'];
@@ -458,10 +367,6 @@ export type FieldInputTypes = {
       readonly venue: CodecTypes['pg/text@1']['input'] | null;
       readonly round: CodecTypes['pg/text@1']['input'] | null;
       readonly matchNumber: CodecTypes['pg/int4@1']['input'] | null;
-      readonly format: CodecTypes['pg/text@1']['input'] | null;
-      readonly maxOvers: CodecTypes['pg/int4@1']['input'] | null;
-      readonly tossWinnerTeamId: CodecTypes['pg/text@1']['input'] | null;
-      readonly tossDecision: CodecTypes['pg/text@1']['input'] | null;
       readonly status: CodecTypes['pg/text@1']['input'];
       readonly result: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -474,15 +379,6 @@ export type FieldInputTypes = {
       readonly type: CodecTypes['pg/text@1']['input'];
       readonly data: CodecTypes['pg/text@1']['input'] | null;
       readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly MatchPlayer: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly playerId: CodecTypes['pg/text@1']['input'];
-      readonly teamId: CodecTypes['pg/text@1']['input'];
-      readonly role: CodecTypes['pg/text@1']['input'];
-      readonly position: CodecTypes['pg/int4@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
     readonly MatchScorerAssignment: {
       readonly id: CodecTypes['pg/text@1']['input'];
@@ -574,60 +470,17 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
-    readonly cricketDelivery: {
-      readonly ballNumber: CodecTypes['pg/int4@1']['output'];
-      readonly bowlerId: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly data: CodecTypes['pg/text@1']['output'] | null;
-      readonly dismissedPlayerId: CodecTypes['pg/text@1']['output'] | null;
-      readonly extras: CodecTypes['pg/int4@1']['output'];
-      readonly extraType: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly inningsId: CodecTypes['pg/text@1']['output'];
-      readonly legalBall: CodecTypes['pg/bool@1']['output'];
-      readonly nonStrikerId: CodecTypes['pg/text@1']['output'];
-      readonly overId: CodecTypes['pg/text@1']['output'];
-      readonly runsOffBat: CodecTypes['pg/int4@1']['output'];
-      readonly strikerId: CodecTypes['pg/text@1']['output'];
-      readonly totalRuns: CodecTypes['pg/int4@1']['output'];
-      readonly wicket: CodecTypes['pg/bool@1']['output'];
-      readonly wicketType: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly cricketInnings: {
-      readonly battingTeamId: CodecTypes['pg/text@1']['output'];
-      readonly bowlingTeamId: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly inningsNumber: CodecTypes['pg/int4@1']['output'];
-      readonly legalBalls: CodecTypes['pg/int4@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly runs: CodecTypes['pg/int4@1']['output'];
-      readonly status: CodecTypes['pg/text@1']['output'];
-      readonly target: CodecTypes['pg/int4@1']['output'] | null;
-      readonly wickets: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly cricketOver: {
-      readonly bowlerId: CodecTypes['pg/text@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly inningsId: CodecTypes['pg/text@1']['output'];
-      readonly overNumber: CodecTypes['pg/int4@1']['output'];
-    };
     readonly match: {
       readonly awayTeamId: CodecTypes['pg/text@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly format: CodecTypes['pg/text@1']['output'] | null;
       readonly homeTeamId: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly matchNumber: CodecTypes['pg/int4@1']['output'] | null;
-      readonly maxOvers: CodecTypes['pg/int4@1']['output'] | null;
       readonly result: CodecTypes['pg/text@1']['output'] | null;
       readonly round: CodecTypes['pg/text@1']['output'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly sportId: CodecTypes['pg/text@1']['output'];
       readonly status: CodecTypes['pg/text@1']['output'];
-      readonly tossDecision: CodecTypes['pg/text@1']['output'] | null;
-      readonly tossWinnerTeamId: CodecTypes['pg/text@1']['output'] | null;
       readonly tournamentId: CodecTypes['pg/text@1']['output'] | null;
       readonly venue: CodecTypes['pg/text@1']['output'] | null;
       readonly winnerTeamId: CodecTypes['pg/text@1']['output'] | null;
@@ -640,15 +493,6 @@ export type StorageColumnTypes = {
       readonly teamId: CodecTypes['pg/text@1']['output'] | null;
       readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly type: CodecTypes['pg/text@1']['output'];
-    };
-    readonly matchPlayer: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly matchId: CodecTypes['pg/text@1']['output'];
-      readonly playerId: CodecTypes['pg/text@1']['output'];
-      readonly position: CodecTypes['pg/int4@1']['output'] | null;
-      readonly role: CodecTypes['pg/text@1']['output'];
-      readonly teamId: CodecTypes['pg/text@1']['output'];
     };
     readonly matchScorerAssignment: {
       readonly assignedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -740,60 +584,17 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
-    readonly cricketDelivery: {
-      readonly ballNumber: CodecTypes['pg/int4@1']['input'];
-      readonly bowlerId: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly data: CodecTypes['pg/text@1']['input'] | null;
-      readonly dismissedPlayerId: CodecTypes['pg/text@1']['input'] | null;
-      readonly extras: CodecTypes['pg/int4@1']['input'];
-      readonly extraType: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly inningsId: CodecTypes['pg/text@1']['input'];
-      readonly legalBall: CodecTypes['pg/bool@1']['input'];
-      readonly nonStrikerId: CodecTypes['pg/text@1']['input'];
-      readonly overId: CodecTypes['pg/text@1']['input'];
-      readonly runsOffBat: CodecTypes['pg/int4@1']['input'];
-      readonly strikerId: CodecTypes['pg/text@1']['input'];
-      readonly totalRuns: CodecTypes['pg/int4@1']['input'];
-      readonly wicket: CodecTypes['pg/bool@1']['input'];
-      readonly wicketType: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly cricketInnings: {
-      readonly battingTeamId: CodecTypes['pg/text@1']['input'];
-      readonly bowlingTeamId: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly inningsNumber: CodecTypes['pg/int4@1']['input'];
-      readonly legalBalls: CodecTypes['pg/int4@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly runs: CodecTypes['pg/int4@1']['input'];
-      readonly status: CodecTypes['pg/text@1']['input'];
-      readonly target: CodecTypes['pg/int4@1']['input'] | null;
-      readonly wickets: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly cricketOver: {
-      readonly bowlerId: CodecTypes['pg/text@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly inningsId: CodecTypes['pg/text@1']['input'];
-      readonly overNumber: CodecTypes['pg/int4@1']['input'];
-    };
     readonly match: {
       readonly awayTeamId: CodecTypes['pg/text@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly format: CodecTypes['pg/text@1']['input'] | null;
       readonly homeTeamId: CodecTypes['pg/text@1']['input'];
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly matchNumber: CodecTypes['pg/int4@1']['input'] | null;
-      readonly maxOvers: CodecTypes['pg/int4@1']['input'] | null;
       readonly result: CodecTypes['pg/text@1']['input'] | null;
       readonly round: CodecTypes['pg/text@1']['input'] | null;
       readonly scheduledAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly sportId: CodecTypes['pg/text@1']['input'];
       readonly status: CodecTypes['pg/text@1']['input'];
-      readonly tossDecision: CodecTypes['pg/text@1']['input'] | null;
-      readonly tossWinnerTeamId: CodecTypes['pg/text@1']['input'] | null;
       readonly tournamentId: CodecTypes['pg/text@1']['input'] | null;
       readonly venue: CodecTypes['pg/text@1']['input'] | null;
       readonly winnerTeamId: CodecTypes['pg/text@1']['input'] | null;
@@ -806,15 +607,6 @@ export type StorageColumnInputTypes = {
       readonly teamId: CodecTypes['pg/text@1']['input'] | null;
       readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly type: CodecTypes['pg/text@1']['input'];
-    };
-    readonly matchPlayer: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly matchId: CodecTypes['pg/text@1']['input'];
-      readonly playerId: CodecTypes['pg/text@1']['input'];
-      readonly position: CodecTypes['pg/int4@1']['input'] | null;
-      readonly role: CodecTypes['pg/text@1']['input'];
-      readonly teamId: CodecTypes['pg/text@1']['input'];
     };
     readonly matchScorerAssignment: {
       readonly assignedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -959,34 +751,26 @@ export namespace Models {
     createdById: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     awayMatches: public_Match[];
-    battingInnings: public_CricketInnings[];
-    bowlingInnings: public_CricketInnings[];
     createdBy: public_User | null;
     events: public_MatchEvent[];
     homeMatches: public_Match[];
-    matchPlayers: public_MatchPlayer[];
     members: public_TeamMember[];
     players: public_Player[];
     registrations: public_TournamentRegistrationRequest[];
     sport: public_Sport;
     statisticValues: public_StatisticValue[];
-    tossWins: public_Match[];
     tournaments: public_TournamentTeam[];
     winnerMatches: public_Match[];
     readonly [RelationKeys]?:
       | 'awayMatches'
-      | 'battingInnings'
-      | 'bowlingInnings'
       | 'createdBy'
       | 'events'
       | 'homeMatches'
-      | 'matchPlayers'
       | 'members'
       | 'players'
       | 'registrations'
       | 'sport'
       | 'statisticValues'
-      | 'tossWins'
       | 'tournaments'
       | 'winnerMatches';
   };
@@ -1006,27 +790,11 @@ export namespace Models {
     teamId: CodecTypes['pg/text@1']['output'];
     jerseyNo: CodecTypes['pg/int4@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    bowledOvers: public_CricketOver[];
-    bowlerDeliveries: public_CricketDelivery[];
-    dismissedDeliveries: public_CricketDelivery[];
     events: public_MatchEvent[];
-    matchPlayers: public_MatchPlayer[];
-    nonStrikerDeliveries: public_CricketDelivery[];
     statisticValues: public_StatisticValue[];
-    strikerDeliveries: public_CricketDelivery[];
     team: public_Team;
     user: public_User;
-    readonly [RelationKeys]?:
-      | 'bowledOvers'
-      | 'bowlerDeliveries'
-      | 'dismissedDeliveries'
-      | 'events'
-      | 'matchPlayers'
-      | 'nonStrikerDeliveries'
-      | 'statisticValues'
-      | 'strikerDeliveries'
-      | 'team'
-      | 'user';
+    readonly [RelationKeys]?: 'events' | 'statisticValues' | 'team' | 'user';
   };
   export type public_TournamentRegistrationRequest = {
     id: CodecTypes['pg/text@1']['output'];
@@ -1063,34 +831,24 @@ export namespace Models {
     venue: CodecTypes['pg/text@1']['output'] | null;
     round: CodecTypes['pg/text@1']['output'] | null;
     matchNumber: CodecTypes['pg/int4@1']['output'] | null;
-    format: CodecTypes['pg/text@1']['output'] | null;
-    maxOvers: CodecTypes['pg/int4@1']['output'] | null;
-    tossWinnerTeamId: CodecTypes['pg/text@1']['output'] | null;
-    tossDecision: CodecTypes['pg/text@1']['output'] | null;
     status: CodecTypes['pg/text@1']['output'];
     result: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     awayTeam: public_Team;
     events: public_MatchEvent[];
     homeTeam: public_Team;
-    innings: public_CricketInnings[];
-    players: public_MatchPlayer[];
     scorerAssignments: public_MatchScorerAssignment[];
     sport: public_Sport;
     statisticValues: public_StatisticValue[];
-    tossWinnerTeam: public_Team | null;
     tournament: public_Tournament | null;
     winnerTeam: public_Team | null;
     readonly [RelationKeys]?:
       | 'awayTeam'
       | 'events'
       | 'homeTeam'
-      | 'innings'
-      | 'players'
       | 'scorerAssignments'
       | 'sport'
       | 'statisticValues'
-      | 'tossWinnerTeam'
       | 'tournament'
       | 'winnerTeam';
   };
@@ -1147,76 +905,6 @@ export namespace Models {
     scorer: public_User;
     readonly [RelationKeys]?: 'assignedBy' | 'match' | 'scorer';
   };
-  export type public_MatchPlayer = {
-    id: CodecTypes['pg/text@1']['output'];
-    matchId: CodecTypes['pg/text@1']['output'];
-    playerId: CodecTypes['pg/text@1']['output'];
-    teamId: CodecTypes['pg/text@1']['output'];
-    role: CodecTypes['pg/text@1']['output'];
-    position: CodecTypes['pg/int4@1']['output'] | null;
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    match: public_Match;
-    player: public_Player;
-    team: public_Team;
-    readonly [RelationKeys]?: 'match' | 'player' | 'team';
-  };
-  export type public_CricketInnings = {
-    id: CodecTypes['pg/text@1']['output'];
-    matchId: CodecTypes['pg/text@1']['output'];
-    inningsNumber: CodecTypes['pg/int4@1']['output'];
-    battingTeamId: CodecTypes['pg/text@1']['output'];
-    bowlingTeamId: CodecTypes['pg/text@1']['output'];
-    runs: CodecTypes['pg/int4@1']['output'];
-    wickets: CodecTypes['pg/int4@1']['output'];
-    legalBalls: CodecTypes['pg/int4@1']['output'];
-    target: CodecTypes['pg/int4@1']['output'] | null;
-    status: CodecTypes['pg/text@1']['output'];
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    battingTeam: public_Team;
-    bowlingTeam: public_Team;
-    deliveries: public_CricketDelivery[];
-    match: public_Match;
-    overs: public_CricketOver[];
-    readonly [RelationKeys]?: 'battingTeam' | 'bowlingTeam' | 'deliveries' | 'match' | 'overs';
-  };
-  export type public_CricketOver = {
-    id: CodecTypes['pg/text@1']['output'];
-    inningsId: CodecTypes['pg/text@1']['output'];
-    overNumber: CodecTypes['pg/int4@1']['output'];
-    bowlerId: CodecTypes['pg/text@1']['output'];
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    bowler: public_Player;
-    deliveries: public_CricketDelivery[];
-    innings: public_CricketInnings;
-    readonly [RelationKeys]?: 'bowler' | 'deliveries' | 'innings';
-  };
-  export type public_CricketDelivery = {
-    id: CodecTypes['pg/text@1']['output'];
-    inningsId: CodecTypes['pg/text@1']['output'];
-    overId: CodecTypes['pg/text@1']['output'];
-    ballNumber: CodecTypes['pg/int4@1']['output'];
-    legalBall: CodecTypes['pg/bool@1']['output'];
-    strikerId: CodecTypes['pg/text@1']['output'];
-    nonStrikerId: CodecTypes['pg/text@1']['output'];
-    bowlerId: CodecTypes['pg/text@1']['output'];
-    runsOffBat: CodecTypes['pg/int4@1']['output'];
-    extras: CodecTypes['pg/int4@1']['output'];
-    totalRuns: CodecTypes['pg/int4@1']['output'];
-    extraType: CodecTypes['pg/text@1']['output'] | null;
-    wicket: CodecTypes['pg/bool@1']['output'];
-    wicketType: CodecTypes['pg/text@1']['output'] | null;
-    dismissedPlayerId: CodecTypes['pg/text@1']['output'] | null;
-    data: CodecTypes['pg/text@1']['output'] | null;
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    bowler: public_Player;
-    dismissedPlayer: public_Player | null;
-    innings: public_CricketInnings;
-    nonStriker: public_Player;
-    over: public_CricketOver;
-    striker: public_Player;
-    readonly [RelationKeys]?:
-      'bowler' | 'dismissedPlayer' | 'innings' | 'nonStriker' | 'over' | 'striker';
-  };
 }
 
 export declare const models: {
@@ -1234,10 +922,6 @@ export declare const models: {
     StatisticValue: Models.public_StatisticValue;
     MatchEvent: Models.public_MatchEvent;
     MatchScorerAssignment: Models.public_MatchScorerAssignment;
-    MatchPlayer: Models.public_MatchPlayer;
-    CricketInnings: Models.public_CricketInnings;
-    CricketOver: Models.public_CricketOver;
-    CricketDelivery: Models.public_CricketDelivery;
   };
 };
 
@@ -1259,450 +943,6 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
-            readonly cricketDelivery: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly inningsId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly overId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly ballNumber: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly legalBall: {
-                  readonly nativeType: 'bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
-                  };
-                };
-                readonly strikerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly nonStrikerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly bowlerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly runsOffBat: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly extras: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly totalRuns: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly extraType: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly wicket: {
-                  readonly nativeType: 'bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
-                  };
-                };
-                readonly wicketType: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly dismissedPlayerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly data: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'cricketDelivery_inningsId_idx_c9065d2f';
-                  readonly prefix: 'cricketDelivery_inningsId_idx';
-                  readonly columns: readonly ['inningsId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_overId_idx_e0a3f6ca';
-                  readonly prefix: 'cricketDelivery_overId_idx';
-                  readonly columns: readonly ['overId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_strikerId_idx_aa9cadab';
-                  readonly prefix: 'cricketDelivery_strikerId_idx';
-                  readonly columns: readonly ['strikerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_nonStrikerId_idx_7f45ada5';
-                  readonly prefix: 'cricketDelivery_nonStrikerId_idx';
-                  readonly columns: readonly ['nonStrikerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_bowlerId_idx_71ee4270';
-                  readonly prefix: 'cricketDelivery_bowlerId_idx';
-                  readonly columns: readonly ['bowlerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_dismissedPlayerId_idx_9c2a2747';
-                  readonly prefix: 'cricketDelivery_dismissedPlayerId_idx';
-                  readonly columns: readonly ['dismissedPlayerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketDelivery_wicket_idx_88ec220f';
-                  readonly prefix: 'cricketDelivery_wicket_idx';
-                  readonly columns: readonly ['wicket'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['inningsId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketInnings';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['overId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketOver';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['strikerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['nonStrikerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['bowlerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketDelivery';
-                    readonly columns: readonly ['dismissedPlayerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
-            readonly cricketInnings: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly matchId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly inningsNumber: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly battingTeamId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly bowlingTeamId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly runs: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly wickets: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly legalBalls: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
-                readonly target: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly status: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'NOT_STARTED'>;
-                  };
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['matchId', 'inningsNumber'] }];
-              indexes: readonly [
-                {
-                  readonly name: 'cricketInnings_matchId_idx_4caf5ecc';
-                  readonly prefix: 'cricketInnings_matchId_idx';
-                  readonly columns: readonly ['matchId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketInnings_battingTeamId_idx_0ac14393';
-                  readonly prefix: 'cricketInnings_battingTeamId_idx';
-                  readonly columns: readonly ['battingTeamId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketInnings_bowlingTeamId_idx_63f0e48d';
-                  readonly prefix: 'cricketInnings_bowlingTeamId_idx';
-                  readonly columns: readonly ['bowlingTeamId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketInnings_status_idx_e98638ab';
-                  readonly prefix: 'cricketInnings_status_idx';
-                  readonly columns: readonly ['status'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketInnings';
-                    readonly columns: readonly ['matchId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'match';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketInnings';
-                    readonly columns: readonly ['battingTeamId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'team';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketInnings';
-                    readonly columns: readonly ['bowlingTeamId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'team';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
-            readonly cricketOver: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly inningsId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly overNumber: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly bowlerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['inningsId', 'overNumber'] }];
-              indexes: readonly [
-                {
-                  readonly name: 'cricketOver_inningsId_idx_c9065d2f';
-                  readonly prefix: 'cricketOver_inningsId_idx';
-                  readonly columns: readonly ['inningsId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'cricketOver_bowlerId_idx_71ee4270';
-                  readonly prefix: 'cricketOver_bowlerId_idx';
-                  readonly columns: readonly ['bowlerId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketOver';
-                    readonly columns: readonly ['inningsId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketInnings';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'cricketOver';
-                    readonly columns: readonly ['bowlerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly match: {
               columns: {
                 readonly id: {
@@ -1753,26 +993,6 @@ type ContractBase = Omit<
                 readonly matchNumber: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly format: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly maxOvers: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly tossWinnerTeamId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly tossDecision: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                 };
                 readonly status: {
@@ -1827,12 +1047,6 @@ type ContractBase = Omit<
                   readonly name: 'match_winnerTeamId_idx_a56a801d';
                   readonly prefix: 'match_winnerTeamId_idx';
                   readonly columns: readonly ['winnerTeamId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'match_tossWinnerTeamId_idx_a7f38680';
-                  readonly prefix: 'match_tossWinnerTeamId_idx';
-                  readonly columns: readonly ['tossWinnerTeamId'];
                   readonly unique: false;
                 },
                 {
@@ -1902,18 +1116,6 @@ type ContractBase = Omit<
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'match';
                     readonly columns: readonly ['winnerTeamId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'team';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'match';
-                    readonly columns: readonly ['tossWinnerTeamId'];
                   };
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -2019,110 +1221,6 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'matchEvent';
-                    readonly columns: readonly ['teamId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'team';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
-            readonly matchPlayer: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly matchId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly playerId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly teamId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly role: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'PLAYER'>;
-                  };
-                };
-                readonly position: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['matchId', 'playerId'] }];
-              indexes: readonly [
-                {
-                  readonly name: 'matchPlayer_matchId_idx_4caf5ecc';
-                  readonly prefix: 'matchPlayer_matchId_idx';
-                  readonly columns: readonly ['matchId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'matchPlayer_playerId_idx_710cf1aa';
-                  readonly prefix: 'matchPlayer_playerId_idx';
-                  readonly columns: readonly ['playerId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'matchPlayer_teamId_idx_f2b72ab3';
-                  readonly prefix: 'matchPlayer_teamId_idx';
-                  readonly columns: readonly ['teamId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'matchPlayer';
-                    readonly columns: readonly ['matchId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'match';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'matchPlayer';
-                    readonly columns: readonly ['playerId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'player';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'matchPlayer';
                     readonly columns: readonly ['teamId'];
                   };
                   readonly target: {
@@ -3028,396 +2126,11 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'MatchScorerAssignment';
     };
-    readonly matchPlayer: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'MatchPlayer';
-    };
-    readonly cricketInnings: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'CricketInnings';
-    };
-    readonly cricketOver: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'CricketOver';
-    };
-    readonly cricketDelivery: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'CricketDelivery';
-    };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
-          readonly CricketDelivery: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly inningsId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly overId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly ballNumber: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly legalBall: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly strikerId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly nonStrikerId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly bowlerId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly runsOffBat: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly extras: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly totalRuns: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly extraType: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly wicket: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
-              readonly wicketType: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly dismissedPlayerId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly data: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly bowler: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['bowlerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly dismissedPlayer: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['dismissedPlayerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly innings: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketInnings';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['inningsId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly nonStriker: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['nonStrikerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly over: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketOver';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['overId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly striker: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['strikerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'cricketDelivery';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly inningsId: { readonly column: 'inningsId' };
-                readonly overId: { readonly column: 'overId' };
-                readonly ballNumber: { readonly column: 'ballNumber' };
-                readonly legalBall: { readonly column: 'legalBall' };
-                readonly strikerId: { readonly column: 'strikerId' };
-                readonly nonStrikerId: { readonly column: 'nonStrikerId' };
-                readonly bowlerId: { readonly column: 'bowlerId' };
-                readonly runsOffBat: { readonly column: 'runsOffBat' };
-                readonly extras: { readonly column: 'extras' };
-                readonly totalRuns: { readonly column: 'totalRuns' };
-                readonly extraType: { readonly column: 'extraType' };
-                readonly wicket: { readonly column: 'wicket' };
-                readonly wicketType: { readonly column: 'wicketType' };
-                readonly dismissedPlayerId: { readonly column: 'dismissedPlayerId' };
-                readonly data: { readonly column: 'data' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly CricketInnings: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly matchId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly inningsNumber: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly battingTeamId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly bowlingTeamId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly runs: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly wickets: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly legalBalls: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly target: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly status: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly battingTeam: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['battingTeamId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly bowlingTeam: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['bowlingTeamId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly deliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['inningsId'];
-                };
-              };
-              readonly match: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Match';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['matchId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly overs: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketOver';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['inningsId'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'cricketInnings';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly matchId: { readonly column: 'matchId' };
-                readonly inningsNumber: { readonly column: 'inningsNumber' };
-                readonly battingTeamId: { readonly column: 'battingTeamId' };
-                readonly bowlingTeamId: { readonly column: 'bowlingTeamId' };
-                readonly runs: { readonly column: 'runs' };
-                readonly wickets: { readonly column: 'wickets' };
-                readonly legalBalls: { readonly column: 'legalBalls' };
-                readonly target: { readonly column: 'target' };
-                readonly status: { readonly column: 'status' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
-          readonly CricketOver: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly inningsId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly overNumber: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly bowlerId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly bowler: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['bowlerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly deliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['overId'];
-                };
-              };
-              readonly innings: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketInnings';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['inningsId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'cricketOver';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly inningsId: { readonly column: 'inningsId' };
-                readonly overNumber: { readonly column: 'overNumber' };
-                readonly bowlerId: { readonly column: 'bowlerId' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
           readonly Match: {
             readonly fields: {
               readonly id: {
@@ -3462,22 +2175,6 @@ type ContractBase = Omit<
               readonly matchNumber: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly format: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly maxOvers: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly tossWinnerTeamId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly tossDecision: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly status: {
                 readonly nullable: false;
@@ -3525,28 +2222,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
-              readonly innings: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketInnings';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['matchId'];
-                };
-              };
-              readonly players: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'MatchPlayer';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['matchId'];
-                };
-              };
               readonly scorerAssignments: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3579,15 +2254,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['matchId'];
-                };
-              };
-              readonly tossWinnerTeam: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
-                readonly cardinality: 'N:1';
-                readonly nullable: true;
-                readonly on: {
-                  readonly localFields: readonly ['tossWinnerTeamId'];
-                  readonly targetFields: readonly ['id'];
                 };
               };
               readonly tournament: {
@@ -3626,10 +2292,6 @@ type ContractBase = Omit<
                 readonly venue: { readonly column: 'venue' };
                 readonly round: { readonly column: 'round' };
                 readonly matchNumber: { readonly column: 'matchNumber' };
-                readonly format: { readonly column: 'format' };
-                readonly maxOvers: { readonly column: 'maxOvers' };
-                readonly tossWinnerTeamId: { readonly column: 'tossWinnerTeamId' };
-                readonly tossDecision: { readonly column: 'tossDecision' };
                 readonly status: { readonly column: 'status' };
                 readonly result: { readonly column: 'result' };
                 readonly createdAt: { readonly column: 'createdAt' };
@@ -3716,89 +2378,6 @@ type ContractBase = Omit<
                 readonly type: { readonly column: 'type' };
                 readonly data: { readonly column: 'data' };
                 readonly timestamp: { readonly column: 'timestamp' };
-              };
-            };
-          };
-          readonly MatchPlayer: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly matchId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly playerId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly teamId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly role: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly position: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly match: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Match';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['matchId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly player: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Player';
-                };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['playerId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly team: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Team' };
-                readonly cardinality: 'N:1';
-                readonly nullable: false;
-                readonly on: {
-                  readonly localFields: readonly ['teamId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'matchPlayer';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly matchId: { readonly column: 'matchId' };
-                readonly playerId: { readonly column: 'playerId' };
-                readonly teamId: { readonly column: 'teamId' };
-                readonly role: { readonly column: 'role' };
-                readonly position: { readonly column: 'position' };
-                readonly createdAt: { readonly column: 'createdAt' };
               };
             };
           };
@@ -3912,39 +2491,6 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly bowledOvers: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketOver';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['bowlerId'];
-                };
-              };
-              readonly bowlerDeliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['bowlerId'];
-                };
-              };
-              readonly dismissedDeliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['dismissedPlayerId'];
-                };
-              };
               readonly events: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3956,28 +2502,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['playerId'];
                 };
               };
-              readonly matchPlayers: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'MatchPlayer';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['playerId'];
-                };
-              };
-              readonly nonStrikerDeliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['nonStrikerId'];
-                };
-              };
               readonly statisticValues: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -3987,17 +2511,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['playerId'];
-                };
-              };
-              readonly strikerDeliveries: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketDelivery';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['strikerId'];
                 };
               };
               readonly team: {
@@ -4318,28 +2831,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['awayTeamId'];
                 };
               };
-              readonly battingInnings: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketInnings';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['battingTeamId'];
-                };
-              };
-              readonly bowlingInnings: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'CricketInnings';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['bowlingTeamId'];
-                };
-              };
               readonly createdBy: {
                 readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
                 readonly cardinality: 'N:1';
@@ -4369,17 +2860,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['homeTeamId'];
-                };
-              };
-              readonly matchPlayers: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'MatchPlayer';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['teamId'];
                 };
               };
               readonly members: {
@@ -4436,17 +2916,6 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['teamId'];
-                };
-              };
-              readonly tossWins: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Match';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['tossWinnerTeamId'];
                 };
               };
               readonly tournaments: {
@@ -4932,30 +3401,6 @@ type ContractBase = Omit<
         {
           readonly ref: {
             readonly namespace: 'public';
-            readonly table: 'cricketDelivery';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
-            readonly table: 'cricketInnings';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
-            readonly table: 'cricketOver';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
             readonly table: 'match';
             readonly column: 'id';
           };
@@ -4965,14 +3410,6 @@ type ContractBase = Omit<
           readonly ref: {
             readonly namespace: 'public';
             readonly table: 'matchEvent';
-            readonly column: 'id';
-          };
-          readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
-        },
-        {
-          readonly ref: {
-            readonly namespace: 'public';
-            readonly table: 'matchPlayer';
             readonly column: 'id';
           };
           readonly onCreate: { readonly kind: 'generator'; readonly id: 'uuidv4' };
