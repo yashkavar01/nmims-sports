@@ -1,4 +1,6 @@
 import db from "../../lib/db";
+import AddSportForm from "./AddSportForm";
+import SportActions from "./SportActions";
 
 export default async function SportsPage() {
   const sports = await db.orm.public.Sport.all();
@@ -8,11 +10,17 @@ export default async function SportsPage() {
       <div className="mx-auto max-w-6xl">
         <p className="text-sm text-slate-400">NMIMS Sports Hub</p>
 
-        <h1 className="mt-2 text-3xl font-bold">Sports</h1>
+        <div className="mt-2 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Sports</h1>
 
-        <p className="mt-2 text-slate-400">
-          Manage all sports available across NMIMS.
-        </p>
+            <p className="mt-2 text-slate-400">
+              Manage all sports available across NMIMS.
+            </p>
+          </div>
+
+          <AddSportForm />
+        </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sports.map((sport) => (
@@ -27,9 +35,11 @@ export default async function SportsPage() {
                   "View tournaments, teams, players and statistics."}
               </p>
 
-              <button className="mt-5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-950">
-                View Sport
-              </button>
+              <SportActions
+                id={sport.id}
+                name={sport.name}
+                description={sport.description}
+              />
             </div>
           ))}
         </div>
