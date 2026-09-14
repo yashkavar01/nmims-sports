@@ -2,18 +2,32 @@
 
 import { useState } from "react";
 
+type Player = {
+  id: string;
+  name: string;
+  jerseyNo: number | null;
+};
+
 type ScorerConsoleProps = {
   homeTeamName: string;
   awayTeamName: string;
+  homePlayers: Player[];
+  awayPlayers: Player[];
 };
 
 export default function ScorerConsole({
   homeTeamName,
   awayTeamName,
+  homePlayers,
+  awayPlayers,
 }: ScorerConsoleProps) {
   const [score, setScore] = useState(0);
   const [wickets, setWickets] = useState(0);
   const [balls, setBalls] = useState(0);
+
+  const [strikerId, setStrikerId] = useState("");
+  const [nonStrikerId, setNonStrikerId] = useState("");
+  const [bowlerId, setBowlerId] = useState("");
 
   const [lastAction, setLastAction] = useState(
     "No delivery recorded yet."
@@ -21,7 +35,6 @@ export default function ScorerConsole({
 
   function recordRuns(runs: number) {
     setScore((current) => current + runs);
-
     setBalls((current) => current + 1);
 
     setLastAction(
@@ -46,7 +59,6 @@ export default function ScorerConsole({
 
   function recordWicket() {
     setWickets((current) => current + 1);
-
     setBalls((current) => current + 1);
 
     setLastAction("WICKET");
@@ -54,19 +66,32 @@ export default function ScorerConsole({
 
   function undoLastBall() {
     setLastAction(
-      "Undo will be connected to the delivery history next."
+      "Undo will be connected to delivery history next."
     );
   }
 
   const completedOvers = Math.floor(balls / 6);
   const currentBall = balls % 6;
-
   const overs = `${completedOvers}.${currentBall}`;
+
+  const striker =
+    homePlayers.find((player) => player.id === strikerId);
+
+  const nonStriker =
+    homePlayers.find(
+      (player) => player.id === nonStrikerId
+    );
+
+  const bowler =
+    awayPlayers.find((player) => player.id === bowlerId);
 
   return (
     <section className="mt-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+
+        {/* MAIN SCORING PANEL */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+
           <div className="text-center">
             <p className="text-sm uppercase tracking-wide text-slate-500">
               LIVE SCORE
@@ -81,56 +106,130 @@ export default function ScorerConsole({
             </p>
           </div>
 
+          {/* PLAYER SELECTION */}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
+
+            {/* STRIKER */}
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-5">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Striker
               </p>
 
-              <p className="mt-2 text-xl font-semibold">
-                Select Batsman
-              </p>
+              <select
+                value={strikerId}
+                onChange={(event) =>
+                  setStrikerId(event.target.value)
+                }
+                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+              >
+                <option value="">
+                  Select Batsman
+                </option>
 
-              <p className="mt-1 text-sm text-slate-500">
-                Player setup coming next
-              </p>
+                {homePlayers.map((player) => (
+                  <option
+                    key={player.id}
+                    value={player.id}
+                    disabled={player.id === nonStrikerId}
+                  >
+                    {player.name}
+                    {player.jerseyNo !== null
+                      ? ` (#${player.jerseyNo})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+
+              {striker && (
+                <p className="mt-2 text-sm text-slate-400">
+                  Batting: {striker.name}
+                </p>
+              )}
             </div>
 
+            {/* NON STRIKER */}
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-5">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Non-Striker
               </p>
 
-              <p className="mt-2 text-xl font-semibold">
-                Select Batsman
-              </p>
+              <select
+                value={nonStrikerId}
+                onChange={(event) =>
+                  setNonStrikerId(event.target.value)
+                }
+                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+              >
+                <option value="">
+                  Select Batsman
+                </option>
 
-              <p className="mt-1 text-sm text-slate-500">
-                Player setup coming next
-              </p>
+                {homePlayers.map((player) => (
+                  <option
+                    key={player.id}
+                    value={player.id}
+                    disabled={player.id === strikerId}
+                  >
+                    {player.name}
+                    {player.jerseyNo !== null
+                      ? ` (#${player.jerseyNo})`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+
+              {nonStriker && (
+                <p className="mt-2 text-sm text-slate-400">
+                  Batting: {nonStriker.name}
+                </p>
+              )}
             </div>
           </div>
 
+          {/* BOWLER */}
           <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-5">
             <p className="text-xs uppercase tracking-wide text-slate-500">
               Bowler
             </p>
 
-            <p className="mt-2 text-xl font-semibold">
-              Select Bowler
-            </p>
+            <select
+              value={bowlerId}
+              onChange={(event) =>
+                setBowlerId(event.target.value)
+              }
+              className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+            >
+              <option value="">
+                Select Bowler
+              </option>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Bowler setup coming next
-            </p>
+              {awayPlayers.map((player) => (
+                <option
+                  key={player.id}
+                  value={player.id}
+                >
+                  {player.name}
+                  {player.jerseyNo !== null
+                    ? ` (#${player.jerseyNo})`
+                    : ""}
+                </option>
+              ))}
+            </select>
+
+            {bowler && (
+              <p className="mt-2 text-sm text-slate-400">
+                Bowling: {bowler.name}
+              </p>
+            )}
           </div>
 
+          {/* RUNS */}
           <div className="mt-8">
             <p className="mb-3 text-sm font-semibold text-slate-300">
               Runs
             </p>
 
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
               {[0, 1, 2, 3, 4, 6].map((runs) => (
                 <button
                   key={runs}
@@ -144,6 +243,7 @@ export default function ScorerConsole({
             </div>
           </div>
 
+          {/* EXTRAS */}
           <div className="mt-8">
             <p className="mb-3 text-sm font-semibold text-slate-300">
               Extras
@@ -176,6 +276,7 @@ export default function ScorerConsole({
             </div>
           </div>
 
+          {/* WICKET */}
           <button
             type="button"
             onClick={recordWicket}
@@ -184,6 +285,7 @@ export default function ScorerConsole({
             WICKET
           </button>
 
+          {/* UNDO */}
           <button
             type="button"
             onClick={undoLastBall}
@@ -193,13 +295,17 @@ export default function ScorerConsole({
           </button>
         </section>
 
+        {/* SIDEBAR */}
         <aside className="space-y-6">
+
+          {/* CURRENT MATCH */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Current Match
             </h2>
 
             <div className="mt-5 space-y-4">
+
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">
                   Batting
@@ -232,6 +338,47 @@ export default function ScorerConsole({
             </div>
           </section>
 
+          {/* PLAYERS */}
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+            <h2 className="text-lg font-semibold">
+              Current Players
+            </h2>
+
+            <div className="mt-5 space-y-4">
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Striker
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  {striker?.name ?? "Not selected"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Non-Striker
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  {nonStriker?.name ?? "Not selected"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Bowler
+                </p>
+
+                <p className="mt-1 font-semibold">
+                  {bowler?.name ?? "Not selected"}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* LAST ACTION */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Last Action
@@ -244,12 +391,14 @@ export default function ScorerConsole({
             </div>
           </section>
 
+          {/* MATCH STATS */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Today&apos;s Match
             </h2>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
+
               <div className="rounded-lg bg-slate-950 p-4">
                 <p className="text-xs text-slate-500">
                   Runs
