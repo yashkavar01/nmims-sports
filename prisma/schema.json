@@ -8,6 +8,10 @@
       "model": "Match",
       "namespace": "public"
     },
+    "matchEvent": {
+      "model": "MatchEvent",
+      "namespace": "public"
+    },
     "player": {
       "model": "Player",
       "namespace": "public"
@@ -121,6 +125,21 @@
                   "namespace": "public"
                 }
               },
+              "events": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "matchId"
+                  ]
+                },
+                "to": {
+                  "model": "MatchEvent",
+                  "namespace": "public"
+                }
+              },
               "homeTeam": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -216,6 +235,136 @@
               "table": "match"
             }
           },
+          "MatchEvent": {
+            "fields": {
+              "data": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "matchId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "playerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "timestamp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "match": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "matchId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Match",
+                  "namespace": "public"
+                }
+              },
+              "player": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "playerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "data": {
+                  "column": "data"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "matchId": {
+                  "column": "matchId"
+                },
+                "playerId": {
+                  "column": "playerId"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "timestamp": {
+                  "column": "timestamp"
+                },
+                "type": {
+                  "column": "type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "matchEvent"
+            }
+          },
           "Player": {
             "fields": {
               "createdAt": {
@@ -255,6 +404,21 @@
               }
             },
             "relations": {
+              "events": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "playerId"
+                  ]
+                },
+                "to": {
+                  "model": "MatchEvent",
+                  "namespace": "public"
+                }
+              },
               "statisticValues": {
                 "cardinality": "1:N",
                 "on": {
@@ -750,6 +914,21 @@
                 },
                 "to": {
                   "model": "Match",
+                  "namespace": "public"
+                }
+              },
+              "events": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "MatchEvent",
                   "namespace": "public"
                 }
               },
@@ -1275,6 +1454,139 @@
                   ],
                   "name": "match_tournamentId_idx_d0bd97a6",
                   "prefix": "match_tournamentId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "matchEvent": {
+              "columns": {
+                "data": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "matchId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "playerId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "teamId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "timestamp": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "matchId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "matchEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "match"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "playerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "matchEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "player"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "matchEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "team"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "matchId"
+                  ],
+                  "name": "matchEvent_matchId_idx_4caf5ecc",
+                  "prefix": "matchEvent_matchId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "playerId"
+                  ],
+                  "name": "matchEvent_playerId_idx_710cf1aa",
+                  "prefix": "matchEvent_playerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "matchEvent_teamId_idx_f2b72ab3",
+                  "prefix": "matchEvent_teamId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "matchEvent_type_idx_b6b604ea",
+                  "prefix": "matchEvent_type_idx",
                   "unique": false
                 }
               ],
@@ -1935,10 +2247,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "761b73c02501aa4f30a953abc0f7f5837bfa9059e42df8ef85ee1895cd908f4a"
+    "storageHash": "9ab1be2cc3d6c4456f1aafc1ffc4022b195b879e6ba9d5a7a93c6bcfa484a31b"
   },
   "execution": {
-    "executionHash": "84a91b89e3f88b6d211ee9e0f9121630fd2eddfacc70d7ea8d24f3731c814ee0",
+    "executionHash": "432d3ce7cc2d4d4e5ec101f5869a654141b6f182307523aaf76df033d564a197",
     "mutations": {
       "defaults": [
         {
@@ -1950,6 +2262,17 @@
             "column": "id",
             "namespace": "public",
             "table": "match"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "matchEvent"
           }
         },
         {

@@ -45,6 +45,7 @@ model Team {
   homeMatches     Match[]          @relation("HomeTeam")
   awayMatches     Match[]          @relation("AwayTeam")
   statisticValues StatisticValue[]
+  events          MatchEvent[]
 }
 
 model Player {
@@ -57,6 +58,7 @@ model Player {
   user            User             @relation(fields:[userId], references:[id])
   team            Team             @relation(fields:[teamId], references:[id])
   statisticValues StatisticValue[]
+  events          MatchEvent[]
 }
 
 model TournamentTeam {
@@ -85,6 +87,7 @@ model Match {
   homeTeam        Team             @relation("HomeTeam", fields:[homeTeamId], references:[id])
   awayTeam        Team             @relation("AwayTeam", fields:[awayTeamId], references:[id])
   statisticValues StatisticValue[]
+  events          MatchEvent[]
 }
 
 model StatisticDefinition {
@@ -121,4 +124,23 @@ model StatisticValue {
   @@index([playerId])
   @@index([teamId])
   @@index([statisticId])
+}
+
+model MatchEvent {
+  id        String   @id @default(uuid())
+  matchId   String
+  playerId  String?
+  teamId    String?
+  type      String
+  data      String?
+  timestamp DateTime @default(now())
+
+  match     Match    @relation(fields:[matchId], references:[id])
+  player    Player?  @relation(fields:[playerId], references:[id])
+  team      Team?    @relation(fields:[teamId], references:[id])
+
+  @@index([matchId])
+  @@index([playerId])
+  @@index([teamId])
+  @@index([type])
 }
