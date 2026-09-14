@@ -1,4 +1,3 @@
-import { Temporal } from "temporal-polyfill/full";
 import { NextResponse } from "next/server";
 import db from "../../../lib/db";
 
@@ -8,12 +7,12 @@ export async function POST(request: Request) {
 
     const name = body.name?.trim();
     const sportId = body.sportId?.trim();
-    const startDate = body.startDate?.trim();
-    const endDate = body.endDate?.trim();
 
     if (!name || !sportId) {
       return NextResponse.json(
-        { error: "Tournament name and sport are required." },
+        {
+          error: "Team name and sport are required.",
+        },
         { status: 400 }
       );
     }
@@ -24,28 +23,81 @@ export async function POST(request: Request) {
 
     if (!sport) {
       return NextResponse.json(
-        { error: "Selected sport does not exist." },
+        {
+          error: "Selected sport does not exist.",
+        },
         { status: 404 }
       );
     }
 
-    const tournament = await db.orm.public.Tournament.create({
+    const existingTeam = await db.orm.public.Team
+      .where({
+        name,
+        sportId,
+      })
+      .first();
+
+    if (existingTeam) {
+      return NextResponse.json(
+        {
+          error: "A team with this name already exists for this sport.",
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+     * TEMPORARY DEVELOPMENT USER
+     *
+     * Authentication will later replace this
+     * with the currently logged-in student's ID.
+     */
+    const developmentEmail = "dev.student@nmims.local";
+
+    let developmentUser = await db.orm.public.User
+      .where({
+        email: developmentEmail,
+      })
+      .first();
+
+    if (!developmentUser) {
+      developmentUser = await db.orm.public.User.create({
+        name: "Development Student",
+        email: developmentEmail,
+        role: "STUDENT",
+      });
+    }
+
+    const team = await db.orm.public.Team.create({
       name,
       sportId,
-      startDate: startDate
-        ? Temporal.Instant.from(`${startDate}T00:00:00Z`)
-        : null,
-      endDate: endDate
-        ? Temporal.Instant.from(`${endDate}T00:00:00Z`)
-        : null,
+      createdById: developmentUser.id,
     });
 
-    return NextResponse.json(tournament, { status: 201 });
+    /*
+     * The student who creates the team
+     * automatically becomes its captain.
+     */
+    const captain = await db.orm.public.TeamMember.create({
+      teamId: team.id,
+      userId: developmentUser.id,
+      role: "CAPTAIN",
+    });
+
+    return NextResponse.json(
+      {
+        team,
+        captain,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Failed to create tournament." },
+      {
+        error: "Failed to create team.",
+      },
       { status: 500 }
     );
   }

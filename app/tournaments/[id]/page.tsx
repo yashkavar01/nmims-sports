@@ -1,5 +1,5 @@
 import db from "../../../lib/db";
-import AddTeamForm from "./AddTeamForm";
+
 
 type TournamentPageProps = {
   params: Promise<{
@@ -112,7 +112,7 @@ export default async function TournamentPage({
               </p>
             </div>
 
-            <AddTeamForm tournamentId={tournament.id} />
+            
           </div>
 
           {registeredTeams.length === 0 ? (

@@ -32,8 +32,16 @@
       "model": "Team",
       "namespace": "public"
     },
+    "teamMember": {
+      "model": "TeamMember",
+      "namespace": "public"
+    },
     "tournament": {
       "model": "Tournament",
+      "namespace": "public"
+    },
+    "tournamentRegistrationRequest": {
+      "model": "TournamentRegistrationRequest",
       "namespace": "public"
     },
     "tournamentTeam": {
@@ -879,6 +887,13 @@
                   "kind": "scalar"
                 }
               },
+              "createdById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -917,6 +932,22 @@
                   "namespace": "public"
                 }
               },
+              "createdBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
               "events": {
                 "cardinality": "1:N",
                 "on": {
@@ -947,6 +978,21 @@
                   "namespace": "public"
                 }
               },
+              "members": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "TeamMember",
+                  "namespace": "public"
+                }
+              },
               "players": {
                 "cardinality": "1:N",
                 "on": {
@@ -959,6 +1005,21 @@
                 },
                 "to": {
                   "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "registrations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "teamId"
+                  ]
+                },
+                "to": {
+                  "model": "TournamentRegistrationRequest",
                   "namespace": "public"
                 }
               },
@@ -1014,6 +1075,9 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "createdById": {
+                  "column": "createdById"
+                },
                 "id": {
                   "column": "id"
                 },
@@ -1026,6 +1090,100 @@
               },
               "namespaceId": "public",
               "table": "team"
+            }
+          },
+          "TeamMember": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "joinedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "joinedAt": {
+                  "column": "joinedAt"
+                },
+                "role": {
+                  "column": "role"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "teamMember"
             }
           },
           "Tournament": {
@@ -1089,6 +1247,21 @@
                   "namespace": "public"
                 }
               },
+              "registrations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "tournamentId"
+                  ]
+                },
+                "to": {
+                  "model": "TournamentRegistrationRequest",
+                  "namespace": "public"
+                }
+              },
               "sport": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -1144,6 +1317,172 @@
               },
               "namespaceId": "public",
               "table": "tournament"
+            }
+          },
+          "TournamentRegistrationRequest": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reason": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "requestedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewedById": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "teamId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tournamentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "requestedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "requestedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "reviewedBy": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "reviewedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "team": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "teamId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              },
+              "tournament": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "tournamentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Tournament",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "reason": {
+                  "column": "reason"
+                },
+                "requestedById": {
+                  "column": "requestedById"
+                },
+                "reviewedAt": {
+                  "column": "reviewedAt"
+                },
+                "reviewedById": {
+                  "column": "reviewedById"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "teamId": {
+                  "column": "teamId"
+                },
+                "tournamentId": {
+                  "column": "tournamentId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "tournamentRegistrationRequest"
             }
           },
           "TournamentTeam": {
@@ -1259,6 +1598,21 @@
               }
             },
             "relations": {
+              "createdTeams": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
+                },
+                "to": {
+                  "model": "Team",
+                  "namespace": "public"
+                }
+              },
               "players": {
                 "cardinality": "1:N",
                 "on": {
@@ -1271,6 +1625,51 @@
                 },
                 "to": {
                   "model": "Player",
+                  "namespace": "public"
+                }
+              },
+              "registrationRequests": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "requestedById"
+                  ]
+                },
+                "to": {
+                  "model": "TournamentRegistrationRequest",
+                  "namespace": "public"
+                }
+              },
+              "reviewedRegistrations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "reviewedById"
+                  ]
+                },
+                "to": {
+                  "model": "TournamentRegistrationRequest",
+                  "namespace": "public"
+                }
+              },
+              "teamMemberships": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "TeamMember",
                   "namespace": "public"
                 }
               }
@@ -1983,6 +2382,11 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "createdById": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -2015,9 +2419,33 @@
                     "namespaceId": "public",
                     "tableName": "sport"
                   }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "createdById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "team"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "createdById"
+                  ],
+                  "name": "team_createdById_idx_8bf640ed",
+                  "prefix": "team_createdById_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "sportId"
@@ -2033,6 +2461,108 @@
                 ]
               },
               "uniques": []
+            },
+            "teamMember": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "joinedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "role": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PLAYER"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "teamId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teamMember"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "team"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "teamMember"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "teamMember_teamId_idx_f2b72ab3",
+                  "prefix": "teamMember_teamId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "teamMember_userId_idx_a489d58a",
+                  "prefix": "teamMember_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "teamId",
+                    "userId"
+                  ]
+                }
+              ]
             },
             "tournament": {
               "columns": {
@@ -2105,6 +2635,184 @@
                 ]
               },
               "uniques": []
+            },
+            "tournamentRegistrationRequest": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "reason": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "requestedById": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "reviewedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "reviewedById": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "teamId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "tournamentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "tournamentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tournamentRegistrationRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tournament"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "teamId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tournamentRegistrationRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "team"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "requestedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tournamentRegistrationRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "reviewedById"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "tournamentRegistrationRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "requestedById"
+                  ],
+                  "name": "tournamentRegistrationRequest_requestedById_idx_f9a56c66",
+                  "prefix": "tournamentRegistrationRequest_requestedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "reviewedById"
+                  ],
+                  "name": "tournamentRegistrationRequest_reviewedById_idx_e2835478",
+                  "prefix": "tournamentRegistrationRequest_reviewedById_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "tournamentRegistrationRequest_status_idx_e98638ab",
+                  "prefix": "tournamentRegistrationRequest_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "teamId"
+                  ],
+                  "name": "tournamentRegistrationRequest_teamId_idx_f2b72ab3",
+                  "prefix": "tournamentRegistrationRequest_teamId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tournamentId"
+                  ],
+                  "name": "tournamentRegistrationRequest_tournamentId_idx_d0bd97a6",
+                  "prefix": "tournamentRegistrationRequest_tournamentId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "tournamentId",
+                    "teamId"
+                  ]
+                }
+              ]
             },
             "tournamentTeam": {
               "columns": {
@@ -2247,10 +2955,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "9ab1be2cc3d6c4456f1aafc1ffc4022b195b879e6ba9d5a7a93c6bcfa484a31b"
+    "storageHash": "c78a1849de6f7507edc76d11321a1cde2d22d179371fde347cd6ead22aa5a0e7"
   },
   "execution": {
-    "executionHash": "432d3ce7cc2d4d4e5ec101f5869a654141b6f182307523aaf76df033d564a197",
+    "executionHash": "ffd32aa9cea406a64f9fd6a95eaed7ea21a413f3b5d85624d97a2ed86e642aa7",
     "mutations": {
       "defaults": [
         {
@@ -2338,7 +3046,29 @@
           "ref": {
             "column": "id",
             "namespace": "public",
+            "table": "teamMember"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
             "table": "tournament"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "tournamentRegistrationRequest"
           }
         },
         {

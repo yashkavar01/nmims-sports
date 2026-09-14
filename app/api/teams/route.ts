@@ -5,69 +5,79 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const tournamentId = body.tournamentId?.trim();
-    const teamName = body.teamName?.trim();
+    const name = body.name?.trim();
+    const sportId = body.sportId?.trim();
 
-    if (!tournamentId || !teamName) {
+    if (!name || !sportId) {
       return NextResponse.json(
-        { error: "Tournament and team name are required." },
+        {
+          error: "Team name and sport are required.",
+        },
         { status: 400 }
       );
     }
 
-    // Find the tournament
-    const tournament = await db.orm.public.Tournament
-      .where({ id: tournamentId })
+    const sport = await db.orm.public.Sport
+      .where({ id: sportId })
       .first();
 
-    if (!tournament) {
+    if (!sport) {
       return NextResponse.json(
-        { error: "Tournament not found." },
+        {
+          error: "Selected sport does not exist.",
+        },
         { status: 404 }
       );
     }
 
-    // Check whether this team already exists for the same sport
-    let team = await db.orm.public.Team
+    const existingTeam = await db.orm.public.Team
       .where({
-        name: teamName,
-        sportId: tournament.sportId,
+        name,
+        sportId,
       })
       .first();
 
-    // Create the team if it doesn't exist
-    if (!team) {
-      team = await db.orm.public.Team.create({
-        name: teamName,
-        sportId: tournament.sportId,
-      });
-    }
-
-    // Check whether the team is already registered
-    const existingRegistration = await db.orm.public.TournamentTeam
-      .where({
-        tournamentId,
-        teamId: team.id,
-      })
-      .first();
-
-    if (existingRegistration) {
+    if (existingTeam) {
       return NextResponse.json(
-        { error: "This team is already registered in the tournament." },
+        {
+          error: "A team with this name already exists for this sport.",
+        },
         { status: 409 }
       );
     }
 
-    // Register team in tournament
-    const registration = await db.orm.public.TournamentTeam.create({
-      tournamentId,
-      teamId: team.id,
+    /*
+     * TEMPORARY DEVELOPMENT USER
+     *
+     * Authentication is not implemented yet.
+     * This user will be replaced by the authenticated
+     * student's ID when Auth.js is added.
+     */
+    const developmentEmail = "dev.student@nmims.local";
+
+    let developmentUser = await db.orm.public.User
+      .where({
+        email: developmentEmail,
+      })
+      .first();
+
+    if (!developmentUser) {
+      developmentUser = await db.orm.public.User.create({
+        name: "Development Student",
+        email: developmentEmail,
+        role: "STUDENT",
+      });
+    }
+
+    const team = await db.orm.public.Team.create({
+      name,
+      sportId,
+      createdById: developmentUser.id,
     });
 
     return NextResponse.json(
       {
         team,
-        registration,
       },
       { status: 201 }
     );
@@ -75,7 +85,9 @@ export async function POST(request: Request) {
     console.error(error);
 
     return NextResponse.json(
-      { error: "Failed to add team." },
+      {
+        error: "Failed to create team.",
+      },
       { status: 500 }
     );
   }

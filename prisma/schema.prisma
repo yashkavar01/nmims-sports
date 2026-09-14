@@ -1,11 +1,15 @@
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  role      String   @default("STUDENT")
-  createdAt DateTime @default(now())
+  id                    String                          @id @default(uuid())
+  name                  String
+  email                 String                          @unique
+  role                  String                          @default("STUDENT")
+  createdAt             DateTime                        @default(now())
 
-  players   Player[]
+  players               Player[]
+  createdTeams          Team[]                          @relation("TeamCreator")
+  teamMemberships       TeamMember[]
+  registrationRequests  TournamentRegistrationRequest[] @relation("RegistrationRequester")
+  reviewedRegistrations TournamentRegistrationRequest[] @relation("RegistrationReviewer")
 }
 
 model Sport {
@@ -21,31 +25,56 @@ model Sport {
 }
 
 model Tournament {
-  id        String           @id @default(uuid())
-  name      String
-  sportId   String
-  startDate DateTime?
-  endDate   DateTime?
-  createdAt DateTime         @default(now())
+  id            String                          @id @default(uuid())
+  name          String
+  sportId       String
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime                        @default(now())
 
-  sport     Sport            @relation(fields:[sportId], references:[id])
-  teams     TournamentTeam[]
-  matches   Match[]
+  sport         Sport                           @relation(fields:[sportId], references:[id])
+  teams         TournamentTeam[]
+  matches       Match[]
+  registrations TournamentRegistrationRequest[]
 }
 
 model Team {
-  id              String           @id @default(uuid())
+  id              String                          @id @default(uuid())
   name            String
   sportId         String
-  createdAt       DateTime         @default(now())
+  createdById     String?
+  createdAt       DateTime                        @default(now())
 
-  sport           Sport            @relation(fields:[sportId], references:[id])
+  sport           Sport                           @relation(fields:[sportId], references:[id])
+  createdBy       User?                           @relation("TeamCreator", fields:[createdById], references:[id])
+
   players         Player[]
+  members         TeamMember[]
   tournaments     TournamentTeam[]
-  homeMatches     Match[]          @relation("HomeTeam")
-  awayMatches     Match[]          @relation("AwayTeam")
+  registrations   TournamentRegistrationRequest[]
+
+  homeMatches     Match[]                         @relation("HomeTeam")
+  awayMatches     Match[]                         @relation("AwayTeam")
+
   statisticValues StatisticValue[]
   events          MatchEvent[]
+
+  @@index([createdById])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid())
+  teamId   String
+  userId   String
+  role     String   @default("PLAYER")
+  joinedAt DateTime @default(now())
+
+  team     Team     @relation(fields:[teamId], references:[id])
+  user     User     @relation(fields:[userId], references:[id])
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@index([teamId])
 }
 
 model Player {
@@ -59,6 +88,31 @@ model Player {
   team            Team             @relation(fields:[teamId], references:[id])
   statisticValues StatisticValue[]
   events          MatchEvent[]
+}
+
+model TournamentRegistrationRequest {
+  id            String     @id @default(uuid())
+  tournamentId  String
+  teamId        String
+  requestedById String?
+  reviewedById  String?
+  status        String     @default("PENDING")
+  reason        String?
+  reviewedAt    DateTime?
+  createdAt     DateTime   @default(now())
+
+  tournament    Tournament @relation(fields:[tournamentId], references:[id])
+  team          Team       @relation(fields:[teamId], references:[id])
+
+  requestedBy   User?      @relation("RegistrationRequester", fields:[requestedById], references:[id])
+  reviewedBy    User?      @relation("RegistrationReviewer", fields:[reviewedById], references:[id])
+
+  @@unique([tournamentId, teamId])
+  @@index([tournamentId])
+  @@index([teamId])
+  @@index([requestedById])
+  @@index([reviewedById])
+  @@index([status])
 }
 
 model TournamentTeam {
