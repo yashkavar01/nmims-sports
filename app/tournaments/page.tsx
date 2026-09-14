@@ -31,9 +31,10 @@ export default async function TournamentsPage() {
             </div>
           ) : (
             tournaments.map((tournament) => (
-              <div
+              <a
                 key={tournament.id}
-                className="rounded-xl border border-slate-800 bg-slate-900 p-6 transition hover:bg-slate-800"
+                href={`/tournaments/${tournament.id}`}
+                className="block rounded-xl border border-slate-800 bg-slate-900 p-6 transition hover:bg-slate-800"
               >
                 <h2 className="text-xl font-semibold">
                   {tournament.name}
@@ -45,20 +46,24 @@ export default async function TournamentsPage() {
 
                 <div className="mt-5 text-sm text-slate-400">
                   <p>
-  Start:{" "}
-  {tournament.startDate
-    ? tournament.startDate.toString()
-    : "Not set"}
-</p>
+                    Start:{" "}
+                    {tournament.startDate
+                      ? tournament.startDate.toString()
+                      : "Not set"}
+                  </p>
 
-<p className="mt-1">
-  End:{" "}
-  {tournament.endDate
-    ? tournament.endDate.toString()
-    : "Not set"}
-</p>
-                </div>  
-              </div>
+                  <p className="mt-1">
+                    End:{" "}
+                    {tournament.endDate
+                      ? tournament.endDate.toString()
+                      : "Not set"}
+                  </p>
+                </div>
+
+                <p className="mt-5 text-sm font-medium text-white">
+                  Open Tournament →
+                </p>
+              </a>
             ))
           )}
         </div>
