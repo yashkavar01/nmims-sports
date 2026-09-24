@@ -34,14 +34,10 @@ export async function POST(
         })
         .first();
 
-    if (
-      !scorer ||
-      scorer.role !== "SCORER"
-    ) {
+    if (!scorer || scorer.role !== "SCORER") {
       return NextResponse.json(
         {
-          error:
-            "Scorer account not found.",
+          error: "Scorer account not found.",
         },
         { status: 403 }
       );
@@ -112,18 +108,13 @@ export async function POST(
       );
     }
 
-    const currentInnings = [
-      ...innings,
-    ].sort(
+    const currentInnings = [...innings].sort(
       (a, b) =>
         b.inningsNumber -
         a.inningsNumber
     )[0];
 
-    if (
-      currentInnings.status !==
-      "IN_PROGRESS"
-    ) {
+    if (currentInnings.status !== "IN_PROGRESS") {
       return NextResponse.json(
         {
           error:
@@ -136,8 +127,7 @@ export async function POST(
     const overs =
       await db.orm.public.CricketOver
         .where({
-          inningsId:
-            currentInnings.id,
+          inningsId: currentInnings.id,
         })
         .all();
 
@@ -151,9 +141,7 @@ export async function POST(
       );
     }
 
-    const currentOver = [
-      ...overs,
-    ].sort(
+    const currentOver = [...overs].sort(
       (a, b) =>
         b.overNumber -
         a.overNumber
@@ -162,15 +150,13 @@ export async function POST(
     const deliveries =
       await db.orm.public.CricketDelivery
         .where({
-          overId:
-            currentOver.id,
+          overId: currentOver.id,
         })
         .all();
 
     const legalBalls =
       deliveries.filter(
-        (delivery) =>
-          delivery.legalBall
+        (delivery) => delivery.legalBall
       ).length;
 
     if (legalBalls < 6) {
@@ -193,8 +179,7 @@ export async function POST(
     const bowlerInPlayingXI =
       matchPlayers.find(
         (player) =>
-          player.playerId ===
-            bowlerId &&
+          player.playerId === bowlerId &&
           player.teamId ===
             currentInnings.bowlingTeamId &&
           player.role === "PLAYING"
@@ -210,10 +195,7 @@ export async function POST(
       );
     }
 
-    if (
-      currentOver.bowlerId ===
-      bowlerId
-    ) {
+    if (currentOver.bowlerId === bowlerId) {
       return NextResponse.json(
         {
           error:
@@ -240,66 +222,170 @@ export async function POST(
       );
     }
 
+    const matchEvents =
+      await db.orm.public.MatchEvent
+        .where({
+          matchId,
+        })
+        .all();
+
+    const inningsEvents = matchEvents
+      .filter((event) => {
+        if (!event.data) {
+          return false;
+        }
+
+        try {
+          const data = JSON.parse(event.data) as {
+            inningsId?: string;
+          };
+
+          return (
+            data.inningsId ===
+            currentInnings.id
+          );
+        } catch {
+          return false;
+        }
+      })
+      .sort(
+        (a, b) =>
+          b.timestamp.epochMilliseconds -
+          a.timestamp.epochMilliseconds
+      );
+
+    const latestInningsState =
+      inningsEvents.find(
+        (event) =>
+          event.type === "INNINGS_STATE"
+      );
+
+    if (!latestInningsState?.data) {
+      return NextResponse.json(
+        {
+          error:
+            "Current innings state is unavailable.",
+        },
+        { status: 409 }
+      );
+    }
+
+    let strikerId = "";
+    let nonStrikerId = "";
+
+    try {
+      const state = JSON.parse(
+        latestInningsState.data
+      ) as {
+        strikerId?: string;
+        nonStrikerId?: string;
+      };
+
+      strikerId = state.strikerId ?? "";
+      nonStrikerId =
+        state.nonStrikerId ?? "";
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            "Current innings state is invalid.",
+        },
+        { status: 409 }
+      );
+    }
+
+    if (!strikerId || !nonStrikerId) {
+      return NextResponse.json(
+        {
+          error:
+            "Both batsmen must be available before starting the next over.",
+        },
+        { status: 409 }
+      );
+    }
+
     const nextOverNumber =
       currentOver.overNumber + 1;
 
     const nextOver =
-      await db.orm.public.CricketOver.create(
-        {
-          inningsId:
-            currentInnings.id,
-          overNumber:
-            nextOverNumber,
-          bowlerId,
-        }
-      );
+      await db.orm.public.CricketOver.create({
+        inningsId: currentInnings.id,
+        overNumber: nextOverNumber,
+        bowlerId,
+      });
 
-    await db.orm.public.MatchEvent.create(
-      {
-        matchId,
-        playerId: bowlerId,
-        teamId:
-          currentInnings.bowlingTeamId,
-        type: "OVER_STARTED",
-        data: JSON.stringify({
-          inningsId:
-            currentInnings.id,
-          previousOverId:
-            currentOver.id,
-          previousOverNumber:
-            currentOver.overNumber,
-          overId: nextOver.id,
-          overNumber:
-            nextOverNumber,
-          bowlerId,
-          score:
-            currentInnings.runs,
-          wickets:
-            currentInnings.wickets,
-          legalBalls:
-            currentInnings.legalBalls,
-        }),
-      }
-    );
+    const lastAction =
+      `Over ${nextOverNumber} started`;
+
+    await db.orm.public.MatchEvent.create({
+      matchId,
+      playerId: bowlerId,
+      teamId:
+        currentInnings.bowlingTeamId,
+      type: "OVER_STARTED",
+      data: JSON.stringify({
+        inningsId: currentInnings.id,
+        previousOverId:
+          currentOver.id,
+        previousOverNumber:
+          currentOver.overNumber,
+        overId: nextOver.id,
+        overNumber: nextOverNumber,
+        bowlerId,
+        strikerId,
+        nonStrikerId,
+        score: currentInnings.runs,
+        wickets: currentInnings.wickets,
+        legalBalls:
+          currentInnings.legalBalls,
+      }),
+    });
+
+    await db.orm.public.MatchEvent.create({
+      matchId,
+      playerId: strikerId,
+      teamId:
+        currentInnings.battingTeamId,
+      type: "INNINGS_STATE",
+      data: JSON.stringify({
+        inningsId: currentInnings.id,
+        overId: nextOver.id,
+        overNumber: nextOverNumber,
+        ballNumber: 0,
+        strikerId,
+        nonStrikerId,
+        bowlerId,
+        score: currentInnings.runs,
+        wickets: currentInnings.wickets,
+        legalBalls:
+          currentInnings.legalBalls,
+        overComplete: false,
+        inningsComplete: false,
+        lastAction,
+        deliveryType: "OVER_STARTED",
+        runsOffBat: 0,
+        extras: 0,
+        totalRuns: 0,
+      }),
+    });
 
     return NextResponse.json(
       {
         success: true,
         over: nextOver,
         state: {
-          score:
-            currentInnings.runs,
-          wickets:
-            currentInnings.wickets,
+          score: currentInnings.runs,
+          wickets: currentInnings.wickets,
           legalBalls:
             currentInnings.legalBalls,
-          overNumber:
-            nextOverNumber,
+          overNumber: nextOverNumber,
           ballNumber: 0,
+          strikerId,
+          nonStrikerId,
           bowlerId,
           overComplete: false,
-          lastAction:
-            `Over ${nextOverNumber} started`,
+          inningsComplete: false,
+          lastAction,
         },
       },
       { status: 201 }

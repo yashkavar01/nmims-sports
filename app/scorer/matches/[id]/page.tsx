@@ -140,6 +140,7 @@ export default async function ScorerMatchPage({
     allPlayers,
     allUsers,
     innings,
+    overs,
     openingEvents,
     stateEvents,
   ] = await Promise.all([
@@ -191,6 +192,23 @@ export default async function ScorerMatchPage({
       })
       .all(),
 
+    db.orm.public.CricketOver
+      .where({
+        inningsId:
+          (
+            await db.orm.public.CricketInnings
+              .where({
+                matchId: match.id,
+              })
+              .all()
+          ).sort(
+            (a, b) =>
+              b.inningsNumber -
+              a.inningsNumber
+          )[0]?.id ?? ""
+      })
+      .all(),
+
     db.orm.public.MatchEvent
       .where({
         matchId: match.id,
@@ -209,8 +227,17 @@ export default async function ScorerMatchPage({
   const currentInnings =
     [...innings].sort(
       (a, b) =>
-        b.inningsNumber - a.inningsNumber
+        b.inningsNumber -
+        a.inningsNumber
     )[0];
+
+  const currentOver = currentInnings
+    ? [...overs].sort(
+        (a, b) =>
+          b.overNumber -
+          a.overNumber
+      )[0]
+    : null;
 
   function buildPlayers(
     teamId: string
@@ -263,7 +290,7 @@ export default async function ScorerMatchPage({
   let openingState: OpeningState | null =
     null;
 
-  if (currentInnings) {
+  if (currentInnings && currentOver) {
     const matchingStateEvents =
       stateEvents
         .filter((event) => {
@@ -276,21 +303,24 @@ export default async function ScorerMatchPage({
               event.data
             ) as {
               inningsId?: string;
+              overId?: string;
             };
 
             return (
               data.inningsId ===
-              currentInnings.id
+                currentInnings.id &&
+              data.overId ===
+                currentOver.id
             );
           } catch {
             return false;
           }
         })
         .sort(
-  (a, b) =>
-    b.timestamp.epochMilliseconds -
-    a.timestamp.epochMilliseconds
-)
+          (a, b) =>
+            b.timestamp.epochMilliseconds -
+            a.timestamp.epochMilliseconds
+        );
 
     if (matchingStateEvents.length > 0) {
       try {
@@ -309,7 +339,8 @@ export default async function ScorerMatchPage({
             inningsId: data.inningsId,
             overId: data.overId,
             overNumber:
-              data.overNumber ?? 1,
+              data.overNumber ??
+              currentOver.overNumber,
             strikerId: data.strikerId,
             nonStrikerId:
               data.nonStrikerId,
@@ -334,90 +365,86 @@ export default async function ScorerMatchPage({
         openingState = null;
       }
     }
+  }
 
-    if (!openingState) {
-      const matchingOpeningEvents =
-        openingEvents
-          .filter((event) => {
-            if (!event.data) {
-              return false;
-            }
-
-            try {
-              const data = JSON.parse(
-                event.data
-              ) as {
-                inningsId?: string;
-              };
-
-              return (
-                data.inningsId ===
-                currentInnings.id
-              );
-            } catch {
-              return false;
-            }
-          })
-          .sort(
-            (a, b) =>
-              new Date(
-                b.timestamp
-              ).getTime() -
-              new Date(
-                a.timestamp
-              ).getTime()
-          );
-
-      if (
-        matchingOpeningEvents.length > 0
-      ) {
-        try {
-          const data = JSON.parse(
-            matchingOpeningEvents[0].data ??
-              "{}"
-          ) as {
-            inningsId?: string;
-            overId?: string;
-            overNumber?: number;
-            strikerId?: string;
-            nonStrikerId?: string;
-            bowlerId?: string;
-          };
-
-          if (
-            data.inningsId &&
-            data.overId &&
-            data.strikerId &&
-            data.nonStrikerId &&
-            data.bowlerId
-          ) {
-            openingState = {
-              inningsId:
-                data.inningsId,
-              overId:
-                data.overId,
-              overNumber:
-                data.overNumber ?? 1,
-              strikerId:
-                data.strikerId,
-              nonStrikerId:
-                data.nonStrikerId,
-              bowlerId:
-                data.bowlerId,
-              score:
-                currentInnings.runs,
-              wickets:
-                currentInnings.wickets,
-              legalBalls:
-                currentInnings.legalBalls,
-              overComplete: false,
-              lastAction:
-                "Innings started.",
-            };
+  if (!openingState && currentInnings) {
+    const matchingOpeningEvents =
+      openingEvents
+        .filter((event) => {
+          if (!event.data) {
+            return false;
           }
-        } catch {
-          openingState = null;
+
+          try {
+            const data = JSON.parse(
+              event.data
+            ) as {
+              inningsId?: string;
+            };
+
+            return (
+              data.inningsId ===
+              currentInnings.id
+            );
+          } catch {
+            return false;
+          }
+        })
+        .sort(
+          (a, b) =>
+            b.timestamp.epochMilliseconds -
+            a.timestamp.epochMilliseconds
+        );
+
+    if (
+      matchingOpeningEvents.length > 0
+    ) {
+      try {
+        const data = JSON.parse(
+          matchingOpeningEvents[0].data ??
+            "{}"
+        ) as {
+          inningsId?: string;
+          overId?: string;
+          overNumber?: number;
+          strikerId?: string;
+          nonStrikerId?: string;
+          bowlerId?: string;
+        };
+
+        if (
+          data.inningsId &&
+          data.overId &&
+          data.strikerId &&
+          data.nonStrikerId &&
+          data.bowlerId
+        ) {
+          openingState = {
+            inningsId:
+              data.inningsId,
+            overId:
+              data.overId,
+            overNumber:
+              data.overNumber ?? 1,
+            strikerId:
+              data.strikerId,
+            nonStrikerId:
+              data.nonStrikerId,
+            bowlerId:
+              data.bowlerId,
+            score:
+              currentInnings.runs,
+            wickets:
+              currentInnings.wickets,
+            legalBalls:
+              currentInnings.legalBalls,
+            overComplete: false,
+            lastAction:
+              "Innings started.",
+          };
         }
+      } catch {
+        openingState = null;
       }
     }
   }

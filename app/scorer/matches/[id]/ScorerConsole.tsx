@@ -423,28 +423,68 @@ export default function ScorerConsole({
     setWicketOpen(true);
   }
 
-  function confirmNewBatsman() {
-    if (!newBatsmanId) {
+  async function confirmNewBatsman() {
+  if (!newBatsmanId) {
+    setError("Select the new batsman.");
+    return;
+  }
+
+  if (saving) {
+    return;
+  }
+
+  setSaving(true);
+  setError("");
+
+  try {
+    const response = await fetch(
+      `/api/scorer/matches/${matchId}/batsman`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          newBatsmanId,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
       setError(
-        "Select the new batsman."
+        data.error ??
+          "Failed to select new batsman."
       );
       return;
     }
 
-    if (dismissedPosition === "STRIKER") {
-      setStrikerId(newBatsmanId);
-    } else if (
-      dismissedPosition === "NON_STRIKER"
-    ) {
-      setNonStrikerId(newBatsmanId);
-    }
+    const state = data.state;
+
+    setScore(state.score);
+    setWickets(state.wickets);
+    setLegalBalls(state.legalBalls);
+    setOverNumber(state.overNumber);
+    setStrikerId(state.strikerId);
+    setNonStrikerId(state.nonStrikerId);
+    setBowlerId(state.bowlerId);
+    setOverComplete(Boolean(state.overComplete));
+    setLastAction(state.lastAction);
 
     setNewBatsmanRequired(false);
     setNewBatsmanId("");
     setDismissedPlayerId("");
     setDismissedPosition("");
     setError("");
+  } catch {
+    setError(
+      "Unable to connect to the scoring server."
+    );
+  } finally {
+    setSaving(false);
   }
+}
 
   return (
     <section className="mt-6">
