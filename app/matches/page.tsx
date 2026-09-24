@@ -8,11 +8,18 @@ export default async function MatchesPage() {
   const sports = await db.orm.public.Sport.all();
 
   const tournamentData = tournaments.map(
-    ({ id, name, sportId }) => ({
-      id,
-      name,
-      sportId,
-    })
+    ({ id, name, sportId }) => {
+      const sport = sports.find(
+        (sport) => sport.id === sportId
+      );
+
+      return {
+        id,
+        name,
+        sportId,
+        sportName: sport?.name ?? "Unknown Sport",
+      };
+    }
   );
 
   const teamData = teams.map(
@@ -80,7 +87,7 @@ export default async function MatchesPage() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_420px]">
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <div>
               <h2 className="text-xl font-semibold">

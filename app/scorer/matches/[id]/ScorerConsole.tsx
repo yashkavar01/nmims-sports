@@ -9,89 +9,158 @@ type Player = {
 };
 
 type ScorerConsoleProps = {
-  homeTeamName: string;
-  awayTeamName: string;
-  homePlayers: Player[];
-  awayPlayers: Player[];
+  matchId: string;
+  battingTeamName: string;
+  bowlingTeamName: string;
+  battingPlayers: Player[];
+  bowlingPlayers: Player[];
+  initialScore: number;
+  initialWickets: number;
+  initialLegalBalls: number;
+  initialOverNumber: number;
+  initialStrikerId: string;
+  initialNonStrikerId: string;
+  initialBowlerId: string;
+  initialOverComplete: boolean;
+  initialLastAction: string;
 };
 
 export default function ScorerConsole({
-  homeTeamName,
-  awayTeamName,
-  homePlayers,
-  awayPlayers,
+  matchId,
+  battingTeamName,
+  bowlingTeamName,
+  battingPlayers,
+  bowlingPlayers,
+  initialScore,
+  initialWickets,
+  initialLegalBalls,
+  initialOverNumber,
+  initialStrikerId,
+  initialNonStrikerId,
+  initialBowlerId,
+  initialOverComplete,
+  initialLastAction,
 }: ScorerConsoleProps) {
-  const [score, setScore] = useState(0);
-  const [wickets, setWickets] = useState(0);
-  const [balls, setBalls] = useState(0);
+  const [score, setScore] = useState(initialScore);
+  const [wickets, setWickets] = useState(initialWickets);
+  const [legalBalls, setLegalBalls] =
+    useState(initialLegalBalls);
 
-  const [strikerId, setStrikerId] = useState("");
-  const [nonStrikerId, setNonStrikerId] = useState("");
-  const [bowlerId, setBowlerId] = useState("");
+  const [overNumber, setOverNumber] =
+    useState(initialOverNumber);
 
-  const [lastAction, setLastAction] = useState(
-    "No delivery recorded yet."
+  const [strikerId, setStrikerId] =
+    useState(initialStrikerId);
+
+  const [nonStrikerId, setNonStrikerId] =
+    useState(initialNonStrikerId);
+
+  const [bowlerId, setBowlerId] =
+    useState(initialBowlerId);
+
+  const [overComplete, setOverComplete] =
+    useState(initialOverComplete);
+
+  const [lastAction, setLastAction] =
+    useState(initialLastAction);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const striker = battingPlayers.find(
+    (player) => player.id === strikerId
   );
 
-  function recordRuns(runs: number) {
-    setScore((current) => current + runs);
-    setBalls((current) => current + 1);
+  const nonStriker = battingPlayers.find(
+    (player) => player.id === nonStrikerId
+  );
 
-    setLastAction(
-      runs === 0
-        ? "Dot ball"
-        : `${runs} run${runs !== 1 ? "s" : ""}`
-    );
-  }
+  const bowler = bowlingPlayers.find(
+    (player) => player.id === bowlerId
+  );
 
-  function recordExtra(
-    type: "WIDE" | "NO BALL" | "BYE" | "LEG BYE"
-  ) {
-    setScore((current) => current + 1);
+  const currentBall = legalBalls % 6;
 
-    if (type === "WIDE" || type === "NO BALL") {
-      setLastAction(`${type} + 1 run`);
-    } else {
-      setBalls((current) => current + 1);
-      setLastAction(`${type} + 1 run`);
+  const overs = `${overNumber - 1}.${currentBall}`;
+
+  async function recordRuns(runs: number) {
+    if (saving || overComplete) {
+      return;
+    }
+
+    if (
+      !strikerId ||
+      !nonStrikerId ||
+      !bowlerId
+    ) {
+      setError(
+        "Striker, non-striker and bowler must be selected."
+      );
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/scorer/matches/${matchId}/delivery`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            strikerId,
+            nonStrikerId,
+            bowlerId,
+            runsOffBat: runs,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.error ??
+            "Failed to record delivery."
+        );
+        return;
+      }
+
+      const state = data.state;
+
+      setScore(state.score);
+      setWickets(state.wickets);
+      setLegalBalls(state.legalBalls);
+      setOverNumber(state.overNumber);
+      setStrikerId(state.strikerId);
+      setNonStrikerId(state.nonStrikerId);
+      setBowlerId(state.bowlerId);
+      setOverComplete(state.overComplete);
+      setLastAction(state.lastAction);
+    } catch {
+      setError(
+        "Unable to connect to the scoring server."
+      );
+    } finally {
+      setSaving(false);
     }
   }
 
-  function recordWicket() {
-    setWickets((current) => current + 1);
-    setBalls((current) => current + 1);
-
-    setLastAction("WICKET");
-  }
-
-  function undoLastBall() {
-    setLastAction(
-      "Undo will be connected to delivery history next."
+  function handleUnsupportedAction(
+    action: string
+  ) {
+    setError(
+      `${action} will be connected in the next scoring milestone.`
     );
   }
-
-  const completedOvers = Math.floor(balls / 6);
-  const currentBall = balls % 6;
-  const overs = `${completedOvers}.${currentBall}`;
-
-  const striker =
-    homePlayers.find((player) => player.id === strikerId);
-
-  const nonStriker =
-    homePlayers.find(
-      (player) => player.id === nonStrikerId
-    );
-
-  const bowler =
-    awayPlayers.find((player) => player.id === bowlerId);
 
   return (
     <section className="mt-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-
-        {/* MAIN SCORING PANEL */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-
           <div className="text-center">
             <p className="text-sm uppercase tracking-wide text-slate-500">
               LIVE SCORE
@@ -106,10 +175,7 @@ export default function ScorerConsole({
             </p>
           </div>
 
-          {/* PLAYER SELECTION */}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
-
-            {/* STRIKER */}
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-5">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Striker
@@ -120,17 +186,21 @@ export default function ScorerConsole({
                 onChange={(event) =>
                   setStrikerId(event.target.value)
                 }
-                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                disabled={saving}
+                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
               >
                 <option value="">
                   Select Batsman
                 </option>
 
-                {homePlayers.map((player) => (
+                {battingPlayers.map((player) => (
                   <option
                     key={player.id}
                     value={player.id}
-                    disabled={player.id === nonStrikerId}
+                    disabled={
+                      player.id ===
+                      nonStrikerId
+                    }
                   >
                     {player.name}
                     {player.jerseyNo !== null
@@ -147,7 +217,6 @@ export default function ScorerConsole({
               )}
             </div>
 
-            {/* NON STRIKER */}
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-5">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Non-Striker
@@ -156,19 +225,24 @@ export default function ScorerConsole({
               <select
                 value={nonStrikerId}
                 onChange={(event) =>
-                  setNonStrikerId(event.target.value)
+                  setNonStrikerId(
+                    event.target.value
+                  )
                 }
-                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                disabled={saving}
+                className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
               >
                 <option value="">
                   Select Batsman
                 </option>
 
-                {homePlayers.map((player) => (
+                {battingPlayers.map((player) => (
                   <option
                     key={player.id}
                     value={player.id}
-                    disabled={player.id === strikerId}
+                    disabled={
+                      player.id === strikerId
+                    }
                   >
                     {player.name}
                     {player.jerseyNo !== null
@@ -186,7 +260,6 @@ export default function ScorerConsole({
             </div>
           </div>
 
-          {/* BOWLER */}
           <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950 p-5">
             <p className="text-xs uppercase tracking-wide text-slate-500">
               Bowler
@@ -197,13 +270,14 @@ export default function ScorerConsole({
               onChange={(event) =>
                 setBowlerId(event.target.value)
               }
-              className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+              disabled={saving}
+              className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
             >
               <option value="">
                 Select Bowler
               </option>
 
-              {awayPlayers.map((player) => (
+              {bowlingPlayers.map((player) => (
                 <option
                   key={player.id}
                   value={player.id}
@@ -223,27 +297,46 @@ export default function ScorerConsole({
             )}
           </div>
 
-          {/* RUNS */}
+          {overComplete && (
+            <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
+              <p className="font-semibold text-amber-300">
+                Over {overNumber} complete
+              </p>
+
+              <p className="mt-1 text-sm text-amber-200/70">
+                Next-over setup will be added in
+                the next scoring milestone.
+              </p>
+            </div>
+          )}
+
           <div className="mt-8">
             <p className="mb-3 text-sm font-semibold text-slate-300">
               Runs
             </p>
 
             <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
-              {[0, 1, 2, 3, 4, 6].map((runs) => (
-                <button
-                  key={runs}
-                  type="button"
-                  onClick={() => recordRuns(runs)}
-                  className="rounded-xl border border-slate-700 bg-slate-950 py-5 text-xl font-bold transition hover:bg-slate-800 active:scale-95"
-                >
-                  {runs}
-                </button>
-              ))}
+              {[0, 1, 2, 3, 4, 6].map(
+                (runs) => (
+                  <button
+                    key={runs}
+                    type="button"
+                    onClick={() =>
+                      recordRuns(runs)
+                    }
+                    disabled={
+                      saving ||
+                      overComplete
+                    }
+                    className="rounded-xl border border-slate-700 bg-slate-950 py-5 text-xl font-bold transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {saving ? "..." : runs}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
-          {/* EXTRAS */}
           <div className="mt-8">
             <p className="mb-3 text-sm font-semibold text-slate-300">
               Extras
@@ -260,15 +353,15 @@ export default function ScorerConsole({
                   key={type}
                   type="button"
                   onClick={() =>
-                    recordExtra(
-                      type as
-                        | "WIDE"
-                        | "NO BALL"
-                        | "BYE"
-                        | "LEG BYE"
+                    handleUnsupportedAction(
+                      type
                     )
                   }
-                  className="rounded-xl border border-slate-700 bg-slate-950 py-4 text-sm font-semibold transition hover:bg-slate-800 active:scale-95"
+                  disabled={
+                    saving ||
+                    overComplete
+                  }
+                  className="rounded-xl border border-slate-700 bg-slate-950 py-4 text-sm font-semibold transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {type}
                 </button>
@@ -276,43 +369,54 @@ export default function ScorerConsole({
             </div>
           </div>
 
-          {/* WICKET */}
           <button
             type="button"
-            onClick={recordWicket}
-            className="mt-4 w-full rounded-xl border border-red-900 bg-red-950/30 py-5 text-lg font-bold text-red-300 transition hover:bg-red-950/50 active:scale-95"
+            onClick={() =>
+              handleUnsupportedAction("Wicket")
+            }
+            disabled={
+              saving ||
+              overComplete
+            }
+            className="mt-4 w-full rounded-xl border border-red-900 bg-red-950/30 py-5 text-lg font-bold text-red-300 transition hover:bg-red-950/50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             WICKET
           </button>
 
-          {/* UNDO */}
           <button
             type="button"
-            onClick={undoLastBall}
-            className="mt-4 w-full rounded-xl border border-slate-700 py-4 text-sm font-semibold text-slate-300 transition hover:bg-slate-800"
+            onClick={() =>
+              handleUnsupportedAction(
+                "Undo"
+              )
+            }
+            disabled={saving}
+            className="mt-4 w-full rounded-xl border border-slate-700 py-4 text-sm font-semibold text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
             UNDO LAST BALL
           </button>
+
+          {error && (
+            <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
         </section>
 
-        {/* SIDEBAR */}
         <aside className="space-y-6">
-
-          {/* CURRENT MATCH */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Current Match
             </h2>
 
             <div className="mt-5 space-y-4">
-
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">
                   Batting
                 </p>
 
                 <p className="mt-1 font-semibold">
-                  {homeTeamName}
+                  {battingTeamName}
                 </p>
               </div>
 
@@ -322,7 +426,7 @@ export default function ScorerConsole({
                 </p>
 
                 <p className="mt-1 font-semibold">
-                  {awayTeamName}
+                  {bowlingTeamName}
                 </p>
               </div>
 
@@ -338,21 +442,20 @@ export default function ScorerConsole({
             </div>
           </section>
 
-          {/* PLAYERS */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Current Players
             </h2>
 
             <div className="mt-5 space-y-4">
-
               <div>
                 <p className="text-xs uppercase tracking-wide text-slate-500">
                   Striker
                 </p>
 
                 <p className="mt-1 font-semibold">
-                  {striker?.name ?? "Not selected"}
+                  {striker?.name ??
+                    "Not selected"}
                 </p>
               </div>
 
@@ -362,7 +465,8 @@ export default function ScorerConsole({
                 </p>
 
                 <p className="mt-1 font-semibold">
-                  {nonStriker?.name ?? "Not selected"}
+                  {nonStriker?.name ??
+                    "Not selected"}
                 </p>
               </div>
 
@@ -372,13 +476,13 @@ export default function ScorerConsole({
                 </p>
 
                 <p className="mt-1 font-semibold">
-                  {bowler?.name ?? "Not selected"}
+                  {bowler?.name ??
+                    "Not selected"}
                 </p>
               </div>
             </div>
           </section>
 
-          {/* LAST ACTION */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Last Action
@@ -391,14 +495,12 @@ export default function ScorerConsole({
             </div>
           </section>
 
-          {/* MATCH STATS */}
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
               Today&apos;s Match
             </h2>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
-
               <div className="rounded-lg bg-slate-950 p-4">
                 <p className="text-xs text-slate-500">
                   Runs

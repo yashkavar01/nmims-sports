@@ -1,25 +1,60 @@
+import Link from "next/link";
+
+const navigation = [
+  { name: "Dashboard", href: "/" },
+  { name: "Sports", href: "/sports" },
+  { name: "Tournaments", href: "/tournaments" },
+  { name: "Teams", href: "/teams" },
+  { name: "Players", href: "/players" },
+  { name: "Matches", href: "/matches" },
+  { name: "Scorer", href: "/scorer" },
+];
+
+const quickActions = [
+  {
+    title: "Add Sport",
+    description: "Create a new sport",
+    href: "/sports",
+  },
+  {
+    title: "Create Tournament",
+    description: "Start a new tournament",
+    href: "/tournaments",
+  },
+  {
+    title: "Create Match",
+    description: "Schedule a match",
+    href: "/matches",
+  },
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="flex min-h-screen">
-        {/* Sidebar */}
         <aside className="hidden w-64 border-r border-slate-800 bg-slate-900 p-6 md:block">
-          <h1 className="text-2xl font-bold">NMIMS Sports</h1>
-          <p className="mt-1 text-sm text-slate-400">Sports Hub</p>
+          <Link href="/" className="block">
+            <h1 className="text-2xl font-bold">NMIMS Sports</h1>
+            <p className="mt-1 text-sm text-slate-400">Sports Hub</p>
+          </Link>
 
           <nav className="mt-10 space-y-2">
-            <div className="rounded-lg bg-slate-800 px-4 py-3">
-              Dashboard
-            </div>
-            <div className="px-4 py-3 text-slate-400">Sports</div>
-            <div className="px-4 py-3 text-slate-400">Tournaments</div>
-            <div className="px-4 py-3 text-slate-400">Teams</div>
-            <div className="px-4 py-3 text-slate-400">Players</div>
-            <div className="px-4 py-3 text-slate-400">Matches</div>
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`block rounded-lg px-4 py-3 transition ${
+                  item.href === "/"
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
         </aside>
 
-        {/* Main content */}
         <section className="flex-1 p-6 md:p-10">
           <header>
             <p className="text-sm text-slate-400">Welcome to</p>
@@ -29,54 +64,92 @@ export default function Home() {
             </p>
           </header>
 
-          {/* Stats */}
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+            <Link
+              href="/sports"
+              className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+            >
               <p className="text-sm text-slate-400">Sports</p>
-              <p className="mt-2 text-3xl font-bold">0</p>
-            </div>
+              <p className="mt-2 text-3xl font-bold">?</p>
+            </Link>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+            <Link
+              href="/tournaments"
+              className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+            >
               <p className="text-sm text-slate-400">Tournaments</p>
-              <p className="mt-2 text-3xl font-bold">0</p>
-            </div>
+              <p className="mt-2 text-3xl font-bold">?</p>
+            </Link>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+            <Link
+              href="/teams"
+              className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+            >
               <p className="text-sm text-slate-400">Teams</p>
-              <p className="mt-2 text-3xl font-bold">0</p>
-            </div>
+              <p className="mt-2 text-3xl font-bold">?</p>
+            </Link>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+            <Link
+              href="/matches"
+              className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+            >
               <p className="text-sm text-slate-400">Live Matches</p>
-              <p className="mt-2 text-3xl font-bold">0</p>
-            </div>
+              <p className="mt-2 text-3xl font-bold">?</p>
+            </Link>
           </div>
 
-          {/* Quick actions */}
           <div className="mt-8">
             <h3 className="text-xl font-semibold">Quick Actions</h3>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <button className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-left transition hover:bg-slate-800">
-                <p className="font-semibold">Add Sport</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  Create a new sport
-                </p>
-              </button>
+              {quickActions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-left transition hover:bg-slate-800"
+                >
+                  <p className="font-semibold">{action.title}</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {action.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
 
-              <button className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-left transition hover:bg-slate-800">
-                <p className="font-semibold">Create Tournament</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  Start a new tournament
-                </p>
-              </button>
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold">Platform Modules</h3>
 
-              <button className="rounded-xl border border-slate-800 bg-slate-900 p-5 text-left transition hover:bg-slate-800">
-                <p className="font-semibold">Create Match</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Link
+                href="/players"
+                className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+              >
+                <p className="font-semibold">Players</p>
                 <p className="mt-1 text-sm text-slate-400">
-                  Schedule a match
+                  Manage player profiles and team members.
                 </p>
-              </button>
+              </Link>
+
+              <Link
+                href="/scorer"
+                className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+              >
+                <p className="font-semibold">Scorer Console</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  Access assigned matches and live scoring.
+                </p>
+              </Link>
+
+              <Link
+                href="/admin/registrations"
+                className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:bg-slate-800"
+              >
+                <p className="font-semibold">Registrations</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  Review tournament registration requests.
+                </p>
+              </Link>
             </div>
           </div>
         </section>

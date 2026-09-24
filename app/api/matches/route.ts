@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       venue,
       round,
       matchNumber,
+      cricketConfig,
     } = body;
 
     if (
@@ -39,14 +40,20 @@ export async function POST(request: Request) {
       !awayTeamId
     ) {
       return NextResponse.json(
-        { error: "Sport, tournament, and both teams are required." },
+        {
+          error:
+            "Sport, tournament, and both teams are required.",
+        },
         { status: 400 }
       );
     }
 
     if (homeTeamId === awayTeamId) {
       return NextResponse.json(
-        { error: "A team cannot play against itself." },
+        {
+          error:
+            "A team cannot play against itself.",
+        },
         { status: 400 }
       );
     }
@@ -62,9 +69,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const tournament = await db.orm.public.Tournament
-      .where({ id: tournamentId })
-      .first();
+    const tournament =
+      await db.orm.public.Tournament
+        .where({ id: tournamentId })
+        .first();
 
     if (!tournament) {
       return NextResponse.json(
@@ -75,7 +83,10 @@ export async function POST(request: Request) {
 
     if (tournament.sportId !== sportId) {
       return NextResponse.json(
-        { error: "Tournament does not belong to the selected sport." },
+        {
+          error:
+            "Tournament does not belong to the selected sport.",
+        },
         { status: 400 }
       );
     }
@@ -90,7 +101,10 @@ export async function POST(request: Request) {
 
     if (!homeTeam || !awayTeam) {
       return NextResponse.json(
-        { error: "One or both teams were not found." },
+        {
+          error:
+            "One or both teams were not found.",
+        },
         { status: 404 }
       );
     }
@@ -100,7 +114,10 @@ export async function POST(request: Request) {
       awayTeam.sportId !== sportId
     ) {
       return NextResponse.json(
-        { error: "Both teams must belong to the selected sport." },
+        {
+          error:
+            "Both teams must belong to the selected sport.",
+        },
         { status: 400 }
       );
     }
@@ -121,7 +138,10 @@ export async function POST(request: Request) {
         })
         .first();
 
-    if (!homeRegistration || !awayRegistration) {
+    if (
+      !homeRegistration ||
+      !awayRegistration
+    ) {
       return NextResponse.json(
         {
           error:
@@ -131,32 +151,220 @@ export async function POST(request: Request) {
       );
     }
 
-    let scheduledInstant = null;
+    const isCricket =
+      sport.name.trim().toLowerCase() ===
+      "cricket";
 
-    if (scheduledAt) {
-      scheduledInstant = Temporal.Instant.from(
-        scheduledAt
+    if (isCricket && !cricketConfig) {
+      return NextResponse.json(
+        {
+          error:
+            "Cricket match configuration is required.",
+        },
+        { status: 400 }
       );
     }
 
-    const match = await db.orm.public.Match.create({
-      sportId,
-      tournamentId,
-      homeTeamId,
-      awayTeamId,
-      scheduledAt: scheduledInstant,
-      venue: venue?.trim() || null,
-      round: round?.trim() || null,
-      matchNumber:
-        matchNumber === "" ||
-        matchNumber === null ||
-        matchNumber === undefined
-          ? null
-          : Number(matchNumber),
-      status: "SCHEDULED",
-    });
+    if (!isCricket && cricketConfig) {
+      return NextResponse.json(
+        {
+          error:
+            "Cricket configuration can only be used for cricket matches.",
+        },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(match, { status: 201 });
+    let scheduledInstant = null;
+
+    if (scheduledAt) {
+      try {
+        scheduledInstant =
+          Temporal.Instant.from(scheduledAt);
+      } catch {
+        return NextResponse.json(
+          {
+            error:
+              "Invalid scheduled date and time.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    let parsedMatchNumber = null;
+
+    if (
+      matchNumber !== "" &&
+      matchNumber !== null &&
+      matchNumber !== undefined
+    ) {
+      parsedMatchNumber = Number(matchNumber);
+
+      if (
+        !Number.isInteger(parsedMatchNumber) ||
+        parsedMatchNumber <= 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Match number must be a positive whole number.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    let validatedCricketConfig = null;
+
+    if (isCricket) {
+      const overs = Number(
+        cricketConfig.overs
+      );
+
+      const playersPerTeam = Number(
+        cricketConfig.playersPerTeam
+      );
+
+      const substitutesPerTeam = Number(
+        cricketConfig.substitutesPerTeam
+      );
+
+      const inningsPerTeam = Number(
+        cricketConfig.inningsPerTeam
+      );
+
+      const validFormats = [
+        "T10",
+        "T20",
+        "T50",
+        "CUSTOM",
+      ];
+
+      const format =
+        typeof cricketConfig.format ===
+        "string"
+          ? cricketConfig.format
+              .trim()
+              .toUpperCase()
+          : "";
+
+      if (!validFormats.includes(format)) {
+        return NextResponse.json(
+          {
+            error:
+              "Invalid cricket match format.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !Number.isInteger(overs) ||
+        overs <= 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Cricket overs must be a positive whole number.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !Number.isInteger(playersPerTeam) ||
+        playersPerTeam <= 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Players per team must be a positive whole number.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !Number.isInteger(
+          substitutesPerTeam
+        ) ||
+        substitutesPerTeam < 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Substitutes per team cannot be negative.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !Number.isInteger(inningsPerTeam) ||
+        inningsPerTeam <= 0
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Innings per team must be a positive whole number.",
+          },
+          { status: 400 }
+        );
+      }
+
+      validatedCricketConfig = {
+        format,
+        overs,
+        playersPerTeam,
+        substitutesPerTeam,
+        inningsPerTeam,
+        wideEnabled:
+          cricketConfig.wideEnabled === true,
+        noBallEnabled:
+          cricketConfig.noBallEnabled === true,
+        byeEnabled:
+          cricketConfig.byeEnabled === true,
+        legByeEnabled:
+          cricketConfig.legByeEnabled === true,
+        penaltyRunsEnabled:
+          cricketConfig.penaltyRunsEnabled ===
+          true,
+      };
+    }
+
+    const match =
+      await db.orm.public.Match.create({
+        sportId,
+        tournamentId,
+        homeTeamId,
+        awayTeamId,
+        scheduledAt: scheduledInstant,
+        venue:
+          typeof venue === "string"
+            ? venue.trim() || null
+            : null,
+        round:
+          typeof round === "string"
+            ? round.trim() || null
+            : null,
+        matchNumber: parsedMatchNumber,
+        status: "SCHEDULED",
+      });
+
+    if (validatedCricketConfig) {
+      await db.orm.public.CricketMatchConfig.create(
+        {
+          matchId: match.id,
+          ...validatedCricketConfig,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      match,
+      { status: 201 }
+    );
   } catch (error) {
     console.error(error);
 

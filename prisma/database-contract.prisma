@@ -1,0 +1,364 @@
+// use prisma-8
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
+
+model Sport {
+  id                   String                @id(map: "sport_pkey")
+  createdAt            Timestamptz           @default(now())
+  description          String?
+  name                 String                @unique(map: "sport_name_key")
+  matches              Match[]
+  statisticDefinitions StatisticDefinition[]
+  teams                Team[]
+  tournaments          Tournament[]
+
+  @@map("sport")
+}
+
+model User {
+  id                                                          String                          @id(map: "user_pkey")
+  createdAt                                                   Timestamptz                     @default(now())
+  email                                                       String                          @unique(map: "user_email_key")
+  name                                                        String
+  role                                                        String                          @default("STUDENT")
+  players                                                     Player[]
+  teams                                                       Team[]
+  teamMembers                                                 TeamMember[]
+  matchScorerAssignments                                      MatchScorerAssignment[]         @relation(name: "matchScorerAssignment_assignedById_fkey")
+  matchScorerAssignmentsMatchScorerAssignment                 MatchScorerAssignment[]         @relation(name: "matchScorerAssignment_scorerId_fkey")
+  tournamentRegistrationRequests                              TournamentRegistrationRequest[] @relation(name: "tournamentRegistrationRequest_requestedById_fkey")
+  tournamentRegistrationRequestsTournamentRegistrationRequest TournamentRegistrationRequest[] @relation(name: "tournamentRegistrationRequest_reviewedById_fkey")
+
+  @@map("user")
+}
+
+model Team {
+  id                             String                          @id(map: "team_pkey")
+  createdAt                      Timestamptz                     @default(now())
+  name                           String
+  sportId                        String
+  createdById                    String?
+  matchEvents                    MatchEvent[]
+  matchPlayers                   MatchPlayer[]
+  players                        Player[]
+  statisticValues                StatisticValue[]
+  teamMembers                    TeamMember[]
+  tournamentRegistrationRequests TournamentRegistrationRequest[]
+  tournamentTeams                TournamentTeam[]
+  cricketInnings                 CricketInnings[]                @relation(name: "cricketInnings_battingTeamId_fkey")
+  cricketInningsCricketInnings   CricketInnings[]                @relation(name: "cricketInnings_bowlingTeamId_fkey")
+  matches                        Match[]                         @relation(name: "match_awayTeamId_fkey")
+  matchesMatch                   Match[]                         @relation(name: "match_homeTeamId_fkey")
+  matches2                       Match[]                         @relation(name: "match_tossWinnerTeamId_fkey")
+  matches3                       Match[]                         @relation(name: "match_winnerTeamId_fkey")
+  createdBy                      User?                           @relation(fields: [createdById], references: [id], map: "team_createdById_fkey")
+  sport                          Sport                           @relation(fields: [sportId], references: [id], map: "team_sportId_fkey")
+
+  @@index([createdById], name: "team_createdById_idx")
+  @@index([sportId], name: "team_sportId_idx")
+  @@map("team")
+}
+
+model Tournament {
+  id                             String                          @id(map: "tournament_pkey")
+  createdAt                      Timestamptz                     @default(now())
+  endDate                        Timestamptz?
+  name                           String
+  sportId                        String
+  startDate                      Timestamptz?
+  matches                        Match[]
+  tournamentRegistrationRequests TournamentRegistrationRequest[]
+  tournamentTeams                TournamentTeam[]
+  sport                          Sport                           @relation(fields: [sportId], references: [id], map: "tournament_sportId_fkey")
+
+  @@index([sportId], name: "tournament_sportId_idx")
+  @@map("tournament")
+}
+
+model Match {
+  id                       String                  @id(map: "match_pkey")
+  awayTeamId               String
+  createdAt                Timestamptz             @default(now())
+  homeTeamId               String
+  scheduledAt              Timestamptz?
+  sportId                  String
+  status                   String                  @default("SCHEDULED")
+  tournamentId             String?
+  matchNumber              Int?
+  result                   String?
+  round                    String?
+  venue                    String?
+  winnerTeamId             String?
+  format                   String?
+  maxOvers                 Int?
+  tossDecision             String?
+  tossWinnerTeamId         String?
+  playingPlayersPerTeam    Int?
+  substitutePlayersPerTeam Int?
+  cricketInnings           CricketInnings[]
+  matchEvents              MatchEvent[]
+  matchPlayers             MatchPlayer[]
+  matchScorerAssignments   MatchScorerAssignment[]
+  statisticValues          StatisticValue[]
+  awayTeam                 Team                    @relation(name: "match_awayTeamId_fkey", fields: [awayTeamId], references: [id], map: "match_awayTeamId_fkey")
+  homeTeam                 Team                    @relation(name: "match_homeTeamId_fkey", fields: [homeTeamId], references: [id], map: "match_homeTeamId_fkey")
+  sport                    Sport                   @relation(fields: [sportId], references: [id], map: "match_sportId_fkey")
+  tossWinnerTeam           Team?                   @relation(name: "match_tossWinnerTeamId_fkey", fields: [tossWinnerTeamId], references: [id], map: "match_tossWinnerTeamId_fkey")
+  tournament               Tournament?             @relation(fields: [tournamentId], references: [id], map: "match_tournamentId_fkey")
+  winnerTeam               Team?                   @relation(name: "match_winnerTeamId_fkey", fields: [winnerTeamId], references: [id], map: "match_winnerTeamId_fkey")
+
+  @@index([awayTeamId], name: "match_awayTeamId_idx")
+  @@index([homeTeamId], name: "match_homeTeamId_idx")
+  @@index([scheduledAt], name: "match_scheduledAt_idx")
+  @@index([sportId], name: "match_sportId_idx")
+  @@index([status], name: "match_status_idx")
+  @@index([tossWinnerTeamId], name: "match_tossWinnerTeamId_idx")
+  @@index([tournamentId], name: "match_tournamentId_idx")
+  @@index([winnerTeamId], name: "match_winnerTeamId_idx")
+  @@map("match")
+}
+
+model CricketInnings {
+  id                String            @id(map: "cricketInnings_pkey")
+  battingTeamId     String
+  bowlingTeamId     String
+  createdAt         Timestamptz       @default(now())
+  inningsNumber     Int
+  legalBalls        Int               @default(0)
+  matchId           String
+  runs              Int               @default(0)
+  status            String            @default("NOT_STARTED")
+  target            Int?
+  wickets           Int               @default(0)
+  cricketDeliveries CricketDelivery[]
+  cricketOvers      CricketOver[]
+  battingTeam       Team              @relation(name: "cricketInnings_battingTeamId_fkey", fields: [battingTeamId], references: [id], map: "cricketInnings_battingTeamId_fkey")
+  bowlingTeam       Team              @relation(name: "cricketInnings_bowlingTeamId_fkey", fields: [bowlingTeamId], references: [id], map: "cricketInnings_bowlingTeamId_fkey")
+  match             Match             @relation(fields: [matchId], references: [id], map: "cricketInnings_matchId_fkey")
+
+  @@unique([matchId, inningsNumber], map: "cricketInnings_matchId_inningsNumber_key")
+  @@index([battingTeamId], name: "cricketInnings_battingTeamId_idx")
+  @@index([bowlingTeamId], name: "cricketInnings_bowlingTeamId_idx")
+  @@index([matchId], name: "cricketInnings_matchId_idx")
+  @@index([status], name: "cricketInnings_status_idx")
+  @@map("cricketInnings")
+}
+
+model Player {
+  id                               String            @id(map: "player_pkey")
+  createdAt                        Timestamptz       @default(now())
+  jerseyNo                         Int?
+  teamId                           String
+  userId                           String
+  cricketOvers                     CricketOver[]
+  matchEvents                      MatchEvent[]
+  matchPlayers                     MatchPlayer[]
+  statisticValues                  StatisticValue[]
+  cricketDeliveries                CricketDelivery[] @relation(name: "cricketDelivery_bowlerId_fkey")
+  cricketDeliveriesCricketDelivery CricketDelivery[] @relation(name: "cricketDelivery_dismissedPlayerId_fkey")
+  cricketDeliveries2               CricketDelivery[] @relation(name: "cricketDelivery_nonStrikerId_fkey")
+  cricketDeliveries3               CricketDelivery[] @relation(name: "cricketDelivery_strikerId_fkey")
+  team                             Team              @relation(fields: [teamId], references: [id], map: "player_teamId_fkey")
+  user                             User              @relation(fields: [userId], references: [id], map: "player_userId_fkey")
+
+  @@index([teamId], name: "player_teamId_idx")
+  @@index([userId], name: "player_userId_idx")
+  @@map("player")
+}
+
+model CricketOver {
+  id                String            @id(map: "cricketOver_pkey")
+  bowlerId          String
+  createdAt         Timestamptz       @default(now())
+  inningsId         String
+  overNumber        Int
+  cricketDeliveries CricketDelivery[]
+  bowler            Player            @relation(fields: [bowlerId], references: [id], map: "cricketOver_bowlerId_fkey")
+  innings           CricketInnings    @relation(fields: [inningsId], references: [id], map: "cricketOver_inningsId_fkey")
+
+  @@unique([inningsId, overNumber], map: "cricketOver_inningsId_overNumber_key")
+  @@index([bowlerId], name: "cricketOver_bowlerId_idx")
+  @@index([inningsId], name: "cricketOver_inningsId_idx")
+  @@map("cricketOver")
+}
+
+model CricketDelivery {
+  id                String         @id(map: "cricketDelivery_pkey")
+  ballNumber        Int
+  bowlerId          String
+  createdAt         Timestamptz    @default(now())
+  data              String?
+  dismissedPlayerId String?
+  extraType         String?
+  extras            Int            @default(0)
+  inningsId         String
+  legalBall         Boolean        @default(true)
+  nonStrikerId      String
+  overId            String
+  runsOffBat        Int            @default(0)
+  strikerId         String
+  totalRuns         Int            @default(0)
+  wicket            Boolean        @default(false)
+  wicketType        String?
+  bowler            Player         @relation(name: "cricketDelivery_bowlerId_fkey", fields: [bowlerId], references: [id], map: "cricketDelivery_bowlerId_fkey")
+  dismissedPlayer   Player?        @relation(name: "cricketDelivery_dismissedPlayerId_fkey", fields: [dismissedPlayerId], references: [id], map: "cricketDelivery_dismissedPlayerId_fkey")
+  innings           CricketInnings @relation(fields: [inningsId], references: [id], map: "cricketDelivery_inningsId_fkey")
+  nonStriker        Player         @relation(name: "cricketDelivery_nonStrikerId_fkey", fields: [nonStrikerId], references: [id], map: "cricketDelivery_nonStrikerId_fkey")
+  over              CricketOver    @relation(fields: [overId], references: [id], map: "cricketDelivery_overId_fkey")
+  striker           Player         @relation(name: "cricketDelivery_strikerId_fkey", fields: [strikerId], references: [id], map: "cricketDelivery_strikerId_fkey")
+
+  @@index([bowlerId], name: "cricketDelivery_bowlerId_idx")
+  @@index([dismissedPlayerId], name: "cricketDelivery_dismissedPlayerId_idx")
+  @@index([inningsId], name: "cricketDelivery_inningsId_idx")
+  @@index([nonStrikerId], name: "cricketDelivery_nonStrikerId_idx")
+  @@index([overId], name: "cricketDelivery_overId_idx")
+  @@index([strikerId], name: "cricketDelivery_strikerId_idx")
+  @@index([wicket], name: "cricketDelivery_wicket_idx")
+  @@map("cricketDelivery")
+}
+
+model MatchEvent {
+  id        String      @id(map: "matchEvent_pkey")
+  data      String?
+  matchId   String
+  playerId  String?
+  teamId    String?
+  timestamp Timestamptz @default(now())
+  _type     String      @map("type")
+  match     Match       @relation(fields: [matchId], references: [id], map: "matchEvent_matchId_fkey")
+  player    Player?     @relation(fields: [playerId], references: [id], map: "matchEvent_playerId_fkey")
+  team      Team?       @relation(fields: [teamId], references: [id], map: "matchEvent_teamId_fkey")
+
+  @@index([matchId], name: "matchEvent_matchId_idx")
+  @@index([playerId], name: "matchEvent_playerId_idx")
+  @@index([teamId], name: "matchEvent_teamId_idx")
+  @@index([_type], name: "matchEvent_type_idx")
+  @@map("matchEvent")
+}
+
+model MatchPlayer {
+  id        String      @id(map: "matchPlayer_pkey")
+  createdAt Timestamptz @default(now())
+  matchId   String
+  playerId  String
+  position  Int?
+  role      String      @default("PLAYER")
+  teamId    String
+  match     Match       @relation(fields: [matchId], references: [id], map: "matchPlayer_matchId_fkey")
+  player    Player      @relation(fields: [playerId], references: [id], map: "matchPlayer_playerId_fkey")
+  team      Team        @relation(fields: [teamId], references: [id], map: "matchPlayer_teamId_fkey")
+
+  @@unique([matchId, playerId], map: "matchPlayer_matchId_playerId_key")
+  @@index([matchId], name: "matchPlayer_matchId_idx")
+  @@index([playerId], name: "matchPlayer_playerId_idx")
+  @@index([teamId], name: "matchPlayer_teamId_idx")
+  @@map("matchPlayer")
+}
+
+model MatchScorerAssignment {
+  id           String      @id(map: "matchScorerAssignment_pkey")
+  assignedAt   Timestamptz @default(now())
+  assignedById String
+  matchId      String
+  scorerId     String
+  status       String      @default("ASSIGNED")
+  updatedAt    Timestamptz @default(now())
+  assignedBy   User        @relation(name: "matchScorerAssignment_assignedById_fkey", fields: [assignedById], references: [id], map: "matchScorerAssignment_assignedById_fkey")
+  match        Match       @relation(fields: [matchId], references: [id], map: "matchScorerAssignment_matchId_fkey")
+  scorer       User        @relation(name: "matchScorerAssignment_scorerId_fkey", fields: [scorerId], references: [id], map: "matchScorerAssignment_scorerId_fkey")
+
+  @@unique([matchId, scorerId], map: "matchScorerAssignment_matchId_scorerId_key")
+  @@index([assignedById], name: "matchScorerAssignment_assignedById_idx")
+  @@index([matchId], name: "matchScorerAssignment_matchId_idx")
+  @@index([scorerId], name: "matchScorerAssignment_scorerId_idx")
+  @@index([status], name: "matchScorerAssignment_status_idx")
+  @@map("matchScorerAssignment")
+}
+
+model StatisticDefinition {
+  id              String           @id(map: "statisticDefinition_pkey")
+  code            String
+  createdAt       Timestamptz      @default(now())
+  dataType        String           @default("NUMBER")
+  description     String?
+  name            String
+  sportId         String
+  unit            String?
+  statisticValues StatisticValue[]
+  sport           Sport            @relation(fields: [sportId], references: [id], map: "statisticDefinition_sportId_fkey")
+
+  @@unique([sportId, code], map: "statisticDefinition_sportId_code_key")
+  @@index([sportId], name: "statisticDefinition_sportId_idx")
+  @@map("statisticDefinition")
+}
+
+model StatisticValue {
+  id          String              @id(map: "statisticValue_pkey")
+  createdAt   Timestamptz         @default(now())
+  matchId     String
+  playerId    String?
+  statisticId String
+  teamId      String?
+  value       Float
+  match       Match               @relation(fields: [matchId], references: [id], map: "statisticValue_matchId_fkey")
+  player      Player?             @relation(fields: [playerId], references: [id], map: "statisticValue_playerId_fkey")
+  statistic   StatisticDefinition @relation(fields: [statisticId], references: [id], map: "statisticValue_statisticId_fkey")
+  team        Team?               @relation(fields: [teamId], references: [id], map: "statisticValue_teamId_fkey")
+
+  @@index([matchId], name: "statisticValue_matchId_idx")
+  @@index([playerId], name: "statisticValue_playerId_idx")
+  @@index([statisticId], name: "statisticValue_statisticId_idx")
+  @@index([teamId], name: "statisticValue_teamId_idx")
+  @@map("statisticValue")
+}
+
+model TeamMember {
+  id       String      @id(map: "teamMember_pkey")
+  joinedAt Timestamptz @default(now())
+  role     String      @default("PLAYER")
+  teamId   String
+  userId   String
+  team     Team        @relation(fields: [teamId], references: [id], map: "teamMember_teamId_fkey")
+  user     User        @relation(fields: [userId], references: [id], map: "teamMember_userId_fkey")
+
+  @@unique([teamId, userId], map: "teamMember_teamId_userId_key")
+  @@index([teamId], name: "teamMember_teamId_idx")
+  @@index([userId], name: "teamMember_userId_idx")
+  @@map("teamMember")
+}
+
+model TournamentRegistrationRequest {
+  id            String       @id(map: "tournamentRegistrationRequest_pkey")
+  createdAt     Timestamptz  @default(now())
+  reason        String?
+  requestedById String?
+  reviewedAt    Timestamptz?
+  reviewedById  String?
+  status        String       @default("PENDING")
+  teamId        String
+  tournamentId  String
+  requestedBy   User?        @relation(name: "tournamentRegistrationRequest_requestedById_fkey", fields: [requestedById], references: [id], map: "tournamentRegistrationRequest_requestedById_fkey")
+  reviewedBy    User?        @relation(name: "tournamentRegistrationRequest_reviewedById_fkey", fields: [reviewedById], references: [id], map: "tournamentRegistrationRequest_reviewedById_fkey")
+  team          Team         @relation(fields: [teamId], references: [id], map: "tournamentRegistrationRequest_teamId_fkey")
+  tournament    Tournament   @relation(fields: [tournamentId], references: [id], map: "tournamentRegistrationRequest_tournamentId_fkey")
+
+  @@unique([tournamentId, teamId], map: "tournamentRegistrationRequest_tournamentId_teamId_key")
+  @@index([requestedById], name: "tournamentRegistrationRequest_requestedById_idx")
+  @@index([reviewedById], name: "tournamentRegistrationRequest_reviewedById_idx")
+  @@index([status], name: "tournamentRegistrationRequest_status_idx")
+  @@index([teamId], name: "tournamentRegistrationRequest_teamId_idx")
+  @@index([tournamentId], name: "tournamentRegistrationRequest_tournamentId_idx")
+  @@map("tournamentRegistrationRequest")
+}
+
+model TournamentTeam {
+  id           String     @id(map: "tournamentTeam_pkey")
+  teamId       String
+  tournamentId String
+  team         Team       @relation(fields: [teamId], references: [id], map: "tournamentTeam_teamId_fkey")
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], map: "tournamentTeam_tournamentId_fkey")
+
+  @@unique([tournamentId, teamId], map: "tournamentTeam_tournamentId_teamId_key")
+  @@index([teamId], name: "tournamentTeam_teamId_idx")
+  @@index([tournamentId], name: "tournamentTeam_tournamentId_idx")
+  @@map("tournamentTeam")
+}

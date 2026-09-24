@@ -179,6 +179,7 @@ model Match {
   scorerAssignments MatchScorerAssignment[]
   players           MatchPlayer[]
   innings           CricketInnings[]
+  cricketConfig     CricketMatchConfig?
 
   @@index([sportId])
   @@index([tournamentId])
@@ -188,6 +189,30 @@ model Match {
   @@index([tossWinnerTeamId])
   @@index([status])
   @@index([scheduledAt])
+}
+
+model CricketMatchConfig {
+  id                 String   @id @default(uuid())
+  matchId            String   @unique
+
+  format             String   @default("CUSTOM")
+  overs              Int
+  playersPerTeam     Int      @default(11)
+  substitutesPerTeam Int      @default(5)
+  inningsPerTeam     Int      @default(1)
+
+  wideEnabled        Boolean  @default(true)
+  noBallEnabled      Boolean  @default(true)
+  byeEnabled         Boolean  @default(true)
+  legByeEnabled      Boolean  @default(true)
+  penaltyRunsEnabled Boolean  @default(false)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now())
+
+  match              Match    @relation(fields:[matchId], references:[id], onDelete: Cascade)
+
+  @@index([format])
 }
 
 model StatisticDefinition {

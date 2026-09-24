@@ -12,6 +12,10 @@
       "model": "CricketInnings",
       "namespace": "public"
     },
+    "cricketMatchConfig": {
+      "model": "CricketMatchConfig",
+      "namespace": "public"
+    },
     "cricketOver": {
       "model": "CricketOver",
       "namespace": "public"
@@ -555,6 +559,174 @@
               "table": "cricketInnings"
             }
           },
+          "CricketMatchConfig": {
+            "fields": {
+              "byeEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "format": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "inningsPerTeam": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "legByeEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "matchId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "noBallEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "overs": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "penaltyRunsEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "playersPerTeam": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "substitutesPerTeam": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "wideEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "match": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "matchId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Match",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "byeEnabled": {
+                  "column": "byeEnabled"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "format": {
+                  "column": "format"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "inningsPerTeam": {
+                  "column": "inningsPerTeam"
+                },
+                "legByeEnabled": {
+                  "column": "legByeEnabled"
+                },
+                "matchId": {
+                  "column": "matchId"
+                },
+                "noBallEnabled": {
+                  "column": "noBallEnabled"
+                },
+                "overs": {
+                  "column": "overs"
+                },
+                "penaltyRunsEnabled": {
+                  "column": "penaltyRunsEnabled"
+                },
+                "playersPerTeam": {
+                  "column": "playersPerTeam"
+                },
+                "substitutesPerTeam": {
+                  "column": "substitutesPerTeam"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "wideEnabled": {
+                  "column": "wideEnabled"
+                }
+              },
+              "namespaceId": "public",
+              "table": "cricketMatchConfig"
+            }
+          },
           "CricketOver": {
             "fields": {
               "bowlerId": {
@@ -800,6 +972,22 @@
                 },
                 "to": {
                   "model": "Team",
+                  "namespace": "public"
+                }
+              },
+              "cricketConfig": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "matchId"
+                  ]
+                },
+                "to": {
+                  "model": "CricketMatchConfig",
                   "namespace": "public"
                 }
               },
@@ -3385,6 +3573,165 @@
                 }
               ]
             },
+            "cricketMatchConfig": {
+              "columns": {
+                "byeEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "format": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CUSTOM"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "inningsPerTeam": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 1
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "legByeEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "matchId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "noBallEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "overs": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "penaltyRunsEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "playersPerTeam": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 11
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "substitutesPerTeam": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 5
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "wideEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "matchId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "cricketMatchConfig"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "match"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "format"
+                  ],
+                  "name": "cricketMatchConfig_format_idx_8b879d33",
+                  "prefix": "cricketMatchConfig_format_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "matchId"
+                  ]
+                }
+              ]
+            },
             "cricketOver": {
               "columns": {
                 "bowlerId": {
@@ -5126,10 +5473,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8d7a45405733e02c32af9f901424d445d82368bbe9dee0954f7048c1306fdb66"
+    "storageHash": "1b1122aadac1d9691106aa579b73614fac50576ce78df8fccbc57b8a22552d2f"
   },
   "execution": {
-    "executionHash": "94e1aa163005375f66515229b6c2bfcef9b1b407b15f3a0c2d682d706f465ff8",
+    "executionHash": "a49ed664df15daa97be71bd72c34a2bce0dfdce9b712174faacc2addeb672286",
     "mutations": {
       "defaults": [
         {
@@ -5152,6 +5499,17 @@
             "column": "id",
             "namespace": "public",
             "table": "cricketInnings"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "cricketMatchConfig"
           }
         },
         {

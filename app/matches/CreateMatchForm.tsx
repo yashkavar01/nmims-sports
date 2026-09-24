@@ -7,6 +7,7 @@ type Tournament = {
   id: string;
   name: string;
   sportId: string;
+  sportName: string;
 };
 
 type Team = {
@@ -38,6 +39,20 @@ export default function CreateMatchForm({
   const [round, setRound] = useState("");
   const [matchNumber, setMatchNumber] = useState("");
 
+  const [format, setFormat] = useState("T20");
+  const [overs, setOvers] = useState("20");
+  const [playersPerTeam, setPlayersPerTeam] = useState("11");
+  const [substitutesPerTeam, setSubstitutesPerTeam] =
+    useState("5");
+  const [inningsPerTeam, setInningsPerTeam] = useState("1");
+
+  const [wideEnabled, setWideEnabled] = useState(true);
+  const [noBallEnabled, setNoBallEnabled] = useState(true);
+  const [byeEnabled, setByeEnabled] = useState(true);
+  const [legByeEnabled, setLegByeEnabled] = useState(true);
+  const [penaltyRunsEnabled, setPenaltyRunsEnabled] =
+    useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -45,10 +60,27 @@ export default function CreateMatchForm({
     (tournament) => tournament.id === tournamentId
   );
 
+  const isCricket =
+    selectedTournament?.sportName.toLowerCase() ===
+    "cricket";
+
   const tournamentTeams = teams.filter(
     (team) =>
       team.sportId === selectedTournament?.sportId
   );
+
+  function resetCricketConfig() {
+    setFormat("T20");
+    setOvers("20");
+    setPlayersPerTeam("11");
+    setSubstitutesPerTeam("5");
+    setInningsPerTeam("1");
+    setWideEnabled(true);
+    setNoBallEnabled(true);
+    setByeEnabled(true);
+    setLegByeEnabled(true);
+    setPenaltyRunsEnabled(false);
+  }
 
   async function createMatch(
     event: React.FormEvent<HTMLFormElement>
@@ -75,6 +107,53 @@ export default function CreateMatchForm({
       return;
     }
 
+    if (isCricket) {
+      const oversValue = Number(overs);
+      const playersValue = Number(playersPerTeam);
+      const substitutesValue = Number(
+        substitutesPerTeam
+      );
+      const inningsValue = Number(inningsPerTeam);
+
+      if (
+        !Number.isInteger(oversValue) ||
+        oversValue <= 0
+      ) {
+        setError("Overs must be a positive whole number.");
+        return;
+      }
+
+      if (
+        !Number.isInteger(playersValue) ||
+        playersValue <= 0
+      ) {
+        setError(
+          "Players per team must be a positive whole number."
+        );
+        return;
+      }
+
+      if (
+        !Number.isInteger(substitutesValue) ||
+        substitutesValue < 0
+      ) {
+        setError(
+          "Substitutes per team cannot be negative."
+        );
+        return;
+      }
+
+      if (
+        !Number.isInteger(inningsValue) ||
+        inningsValue <= 0
+      ) {
+        setError(
+          "Innings per team must be a positive whole number."
+        );
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -89,11 +168,34 @@ export default function CreateMatchForm({
           homeTeamId,
           awayTeamId,
           scheduledAt: scheduledAt
-            ? new Date(scheduledAt).toISOString()
+            ? new Date(
+                scheduledAt
+              ).toISOString()
             : null,
           venue,
           round,
           matchNumber,
+
+          cricketConfig: isCricket
+            ? {
+                format,
+                overs: Number(overs),
+                playersPerTeam: Number(
+                  playersPerTeam
+                ),
+                substitutesPerTeam: Number(
+                  substitutesPerTeam
+                ),
+                inningsPerTeam: Number(
+                  inningsPerTeam
+                ),
+                wideEnabled,
+                noBallEnabled,
+                byeEnabled,
+                legByeEnabled,
+                penaltyRunsEnabled,
+              }
+            : null,
         }),
       });
 
@@ -111,6 +213,7 @@ export default function CreateMatchForm({
       setVenue("");
       setRound("");
       setMatchNumber("");
+      resetCricketConfig();
 
       router.refresh();
     } catch (error) {
@@ -137,7 +240,7 @@ export default function CreateMatchForm({
 
       <form
         onSubmit={createMatch}
-        className="mt-5 space-y-4"
+        className="mt-5 space-y-5"
       >
         <div>
           <label className="text-sm text-slate-300">
@@ -162,7 +265,8 @@ export default function CreateMatchForm({
                 key={tournament.id}
                 value={tournament.id}
               >
-                {tournament.name}
+                {tournament.name} —{" "}
+                {tournament.sportName}
               </option>
             ))}
           </select>
@@ -289,6 +393,211 @@ export default function CreateMatchForm({
             />
           </div>
         </div>
+
+        {isCricket && (
+          <div className="rounded-xl border border-emerald-900/60 bg-slate-950 p-5">
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                Cricket Match Configuration
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Configure the rules and playing structure
+                for this cricket match.
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-sm text-slate-300">
+                  Match Format
+                </label>
+
+                <select
+                  value={format}
+                  onChange={(event) =>
+                    setFormat(event.target.value)
+                  }
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                >
+                  <option value="T10">T10</option>
+                  <option value="T20">T20</option>
+                  <option value="T50">T50</option>
+                  <option value="CUSTOM">
+                    Custom
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-slate-300">
+                  Total Overs
+                </label>
+
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={overs}
+                  onChange={(event) =>
+                    setOvers(event.target.value)
+                  }
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-slate-300">
+                  Players Per Team
+                </label>
+
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={playersPerTeam}
+                  onChange={(event) =>
+                    setPlayersPerTeam(
+                      event.target.value
+                    )
+                  }
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-slate-300">
+                  Substitutes Per Team
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={substitutesPerTeam}
+                  onChange={(event) =>
+                    setSubstitutesPerTeam(
+                      event.target.value
+                    )
+                  }
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-sm text-slate-300">
+                  Innings Per Team
+                </label>
+
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={inningsPerTeam}
+                  onChange={(event) =>
+                    setInningsPerTeam(
+                      event.target.value
+                    )
+                  }
+                  className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-sm font-medium text-slate-300">
+                Extra Rules
+              </p>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
+                  <span className="text-sm text-slate-300">
+                    Wide Balls
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={wideEnabled}
+                    onChange={(event) =>
+                      setWideEnabled(
+                        event.target.checked
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
+                  <span className="text-sm text-slate-300">
+                    No Balls
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={noBallEnabled}
+                    onChange={(event) =>
+                      setNoBallEnabled(
+                        event.target.checked
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
+                  <span className="text-sm text-slate-300">
+                    Byes
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={byeEnabled}
+                    onChange={(event) =>
+                      setByeEnabled(
+                        event.target.checked
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3">
+                  <span className="text-sm text-slate-300">
+                    Leg Byes
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={legByeEnabled}
+                    onChange={(event) =>
+                      setLegByeEnabled(
+                        event.target.checked
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                </label>
+
+                <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-800 bg-slate-900 px-4 py-3 sm:col-span-2">
+                  <span className="text-sm text-slate-300">
+                    Penalty Runs
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={penaltyRunsEnabled}
+                    onChange={(event) =>
+                      setPenaltyRunsEnabled(
+                        event.target.checked
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
 
         <button
           type="submit"
