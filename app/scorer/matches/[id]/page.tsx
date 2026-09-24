@@ -287,14 +287,10 @@ export default async function ScorerMatchPage({
           }
         })
         .sort(
-          (a, b) =>
-            new Date(
-              b.timestamp
-            ).getTime() -
-            new Date(
-              a.timestamp
-            ).getTime()
-        );
+  (a, b) =>
+    b.timestamp.epochMilliseconds -
+    a.timestamp.epochMilliseconds
+)
 
     if (matchingStateEvents.length > 0) {
       try {

@@ -2,14 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 
 import db from "../../../../../../lib/db";
 
+type DeliveryType =
+  | "NORMAL"
+  | "WIDE"
+  | "NO_BALL"
+  | "BYE"
+  | "LEG_BYE";
+
 type DeliveryRequest = {
   strikerId?: string;
   nonStrikerId?: string;
   bowlerId?: string;
+  deliveryType?: DeliveryType;
   runsOffBat?: number;
 };
 
 const VALID_RUNS = new Set([0, 1, 2, 3, 4, 6]);
+
+const VALID_DELIVERY_TYPES = new Set<DeliveryType>([
+  "NORMAL",
+  "WIDE",
+  "NO_BALL",
+  "BYE",
+  "LEG_BYE",
+]);
 
 export async function POST(
   request: NextRequest,
@@ -22,7 +38,14 @@ export async function POST(
     const strikerId = body.strikerId?.trim();
     const nonStrikerId = body.nonStrikerId?.trim();
     const bowlerId = body.bowlerId?.trim();
-    const runsOffBat = body.runsOffBat;
+
+    const deliveryType: DeliveryType =
+      body.deliveryType ?? "NORMAL";
+
+    const runsOffBat =
+      typeof body.runsOffBat === "number"
+        ? body.runsOffBat
+        : 0;
 
     if (!strikerId || !nonStrikerId || !bowlerId) {
       return NextResponse.json(
@@ -44,14 +67,37 @@ export async function POST(
       );
     }
 
+    if (!VALID_DELIVERY_TYPES.has(deliveryType)) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid delivery type.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (
-      typeof runsOffBat !== "number" ||
+      deliveryType === "NORMAL" &&
       !VALID_RUNS.has(runsOffBat)
     ) {
       return NextResponse.json(
         {
           error:
             "Runs must be one of 0, 1, 2, 3, 4 or 6.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      deliveryType !== "NORMAL" &&
+      runsOffBat !== 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Runs off bat must be 0 for an extras delivery.",
         },
         { status: 400 }
       );
@@ -90,7 +136,8 @@ export async function POST(
     if (match.status !== "LIVE") {
       return NextResponse.json(
         {
-          error: "Only live matches can receive deliveries.",
+          error:
+            "Only live matches can receive deliveries.",
         },
         { status: 409 }
       );
@@ -118,11 +165,12 @@ export async function POST(
       );
     }
 
-    const innings = await db.orm.public.CricketInnings
-      .where({
-        matchId,
-      })
-      .all();
+    const innings =
+      await db.orm.public.CricketInnings
+        .where({
+          matchId,
+        })
+        .all();
 
     if (innings.length === 0) {
       return NextResponse.json(
@@ -140,7 +188,8 @@ export async function POST(
     if (currentInnings.status !== "IN_PROGRESS") {
       return NextResponse.json(
         {
-          error: "The current innings is not in progress.",
+          error:
+            "The current innings is not in progress.",
         },
         { status: 409 }
       );
@@ -171,10 +220,10 @@ export async function POST(
         }
       })
       .sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() -
-          new Date(a.timestamp).getTime()
-      );
+  (a, b) =>
+    b.timestamp.epochMilliseconds -
+    a.timestamp.epochMilliseconds
+)
 
     if (inningsOpeningEvents.length === 0) {
       return NextResponse.json(
@@ -186,11 +235,12 @@ export async function POST(
       );
     }
 
-    const overs = await db.orm.public.CricketOver
-      .where({
-        inningsId: currentInnings.id,
-      })
-      .all();
+    const overs =
+      await db.orm.public.CricketOver
+        .where({
+          inningsId: currentInnings.id,
+        })
+        .all();
 
     if (overs.length === 0) {
       return NextResponse.json(
@@ -206,13 +256,18 @@ export async function POST(
       (a, b) => b.overNumber - a.overNumber
     )[0];
 
-    const deliveries = await db.orm.public.CricketDelivery
-      .where({
-        overId: currentOver.id,
-      })
-      .all();
+    const deliveries =
+      await db.orm.public.CricketDelivery
+        .where({
+          overId: currentOver.id,
+        })
+        .all();
 
-    if (deliveries.length >= 6) {
+    const legalDeliveriesInOver = deliveries.filter(
+      (delivery) => delivery.legalBall
+    );
+
+    if (legalDeliveriesInOver.length >= 6) {
       return NextResponse.json(
         {
           error:
@@ -299,52 +354,112 @@ export async function POST(
 
     const ballNumber = deliveries.length + 1;
 
+    const legalBall =
+      deliveryType === "WIDE" ||
+      deliveryType === "NO_BALL"
+        ? false
+        : true;
+
+    const extras =
+      deliveryType === "WIDE" ||
+      deliveryType === "NO_BALL" ||
+      deliveryType === "BYE" ||
+      deliveryType === "LEG_BYE"
+        ? 1
+        : 0;
+
+    const totalRuns =
+      runsOffBat + extras;
+
     const delivery =
       await db.orm.public.CricketDelivery.create({
         inningsId: currentInnings.id,
         overId: currentOver.id,
         ballNumber,
-        legalBall: true,
+        legalBall,
         strikerId,
         nonStrikerId,
         bowlerId,
         runsOffBat,
-        extras: 0,
-        totalRuns: runsOffBat,
-        extraType: null,
+        extras,
+        totalRuns,
+        extraType:
+          deliveryType === "NORMAL"
+            ? null
+            : deliveryType,
         wicket: false,
         wicketType: null,
         dismissedPlayerId: null,
         data: JSON.stringify({
           scorerId: scorer.id,
-          deliveryType: "NORMAL",
+          deliveryType,
         }),
       });
+
+    const nextRuns =
+      currentInnings.runs + totalRuns;
+
+    const nextLegalBalls =
+      currentInnings.legalBalls +
+      (legalBall ? 1 : 0);
 
     await db.orm.public.CricketInnings
       .where({
         id: currentInnings.id,
       })
       .update({
-        runs: currentInnings.runs + runsOffBat,
-        legalBalls: currentInnings.legalBalls + 1,
+        runs: nextRuns,
+        legalBalls: nextLegalBalls,
       });
-
-    const overComplete = ballNumber === 6;
 
     let nextStrikerId = strikerId;
     let nextNonStrikerId = nonStrikerId;
 
-    if (runsOffBat % 2 === 1) {
+    const runsForRotation =
+      deliveryType === "NORMAL"
+        ? runsOffBat
+        : deliveryType === "BYE" ||
+            deliveryType === "LEG_BYE"
+          ? extras
+          : 0;
+
+    if (runsForRotation % 2 === 1) {
       nextStrikerId = nonStrikerId;
       nextNonStrikerId = strikerId;
     }
 
-    if (overComplete) {
-      const endOverStriker = nextStrikerId;
+    const overComplete =
+      legalBall &&
+      legalDeliveriesInOver.length + 1 === 6;
 
-      nextStrikerId = nextNonStrikerId;
-      nextNonStrikerId = endOverStriker;
+    if (overComplete) {
+      const endOverStriker =
+        nextStrikerId;
+
+      nextStrikerId =
+        nextNonStrikerId;
+
+      nextNonStrikerId =
+        endOverStriker;
+    }
+
+    let lastAction = "Dot ball";
+
+    if (deliveryType === "NORMAL") {
+      lastAction =
+        runsOffBat === 0
+          ? "Dot ball"
+          : `${runsOffBat} run${
+              runsOffBat !== 1 ? "s" : ""
+            }`;
+    } else if (deliveryType === "WIDE") {
+      lastAction = "Wide +1";
+    } else if (deliveryType === "NO_BALL") {
+      lastAction = "No Ball +1";
+    } else if (deliveryType === "BYE") {
+      lastAction = "Bye +1";
+    } else if (deliveryType === "LEG_BYE") {
+      lastAction = "Leg Bye +1";
     }
 
     await db.orm.public.MatchEvent.create({
@@ -360,16 +475,15 @@ export async function POST(
         strikerId: nextStrikerId,
         nonStrikerId: nextNonStrikerId,
         bowlerId,
-        score: currentInnings.runs + runsOffBat,
+        score: nextRuns,
         wickets: currentInnings.wickets,
-        legalBalls: currentInnings.legalBalls + 1,
+        legalBalls: nextLegalBalls,
         overComplete,
-        lastAction:
-          runsOffBat === 0
-            ? "Dot ball"
-            : `${runsOffBat} run${
-                runsOffBat !== 1 ? "s" : ""
-              }`,
+        lastAction,
+        deliveryType,
+        runsOffBat,
+        extras,
+        totalRuns,
       }),
     });
 
@@ -378,22 +492,20 @@ export async function POST(
         success: true,
         delivery,
         state: {
-          score: currentInnings.runs + runsOffBat,
+          score: nextRuns,
           wickets: currentInnings.wickets,
-          legalBalls:
-            currentInnings.legalBalls + 1,
+          legalBalls: nextLegalBalls,
           overNumber: currentOver.overNumber,
           ballNumber,
           strikerId: nextStrikerId,
           nonStrikerId: nextNonStrikerId,
           bowlerId,
           overComplete,
-          lastAction:
-            runsOffBat === 0
-              ? "Dot ball"
-              : `${runsOffBat} run${
-                  runsOffBat !== 1 ? "s" : ""
-                }`,
+          lastAction,
+          deliveryType,
+          runsOffBat,
+          extras,
+          totalRuns,
         },
       },
       { status: 201 }
