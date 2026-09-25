@@ -38,6 +38,9 @@ type ScorerConsoleProps = {
   initialBowlerId: string;
   initialOverComplete: boolean;
   initialLastAction: string;
+  target: number | null;
+  maxOvers: number;
+  inningsNumber: number;
 };
 
 export default function ScorerConsole({
@@ -55,6 +58,9 @@ export default function ScorerConsole({
   initialBowlerId,
   initialOverComplete,
   initialLastAction,
+  target,
+  maxOvers,
+  inningsNumber,
 }: ScorerConsoleProps) {
   const [score, setScore] = useState(initialScore);
   const [wickets, setWickets] = useState(initialWickets);
@@ -105,6 +111,12 @@ export default function ScorerConsole({
   const [newBatsmanId, setNewBatsmanId] =
     useState("");
 
+  const [inningsCompleting, setInningsCompleting] =
+    useState(false);
+
+  const [matchCompleted, setMatchCompleted] =
+    useState(false);
+
   const striker = battingPlayers.find(
     (player) => player.id === strikerId
   );
@@ -135,6 +147,32 @@ export default function ScorerConsole({
         player.id !== dismissedPlayerId
     );
 
+  const allOut =
+    wickets >= Math.max(battingPlayers.length - 1, 1);
+
+  const targetReached =
+    target !== null &&
+    score >= target;
+
+  const maximumOversReached =
+    maxOvers > 0 &&
+    legalBalls >= maxOvers * 6;
+
+  const inningsCanBeCompleted =
+    allOut ||
+    targetReached ||
+    maximumOversReached;
+
+  const runsRequired =
+    target !== null
+      ? Math.max(target - score, 0)
+      : null;
+
+  const ballsRemaining =
+    maxOvers > 0
+      ? Math.max(maxOvers * 6 - legalBalls, 0)
+      : null;
+
   async function recordDelivery(
     deliveryType: DeliveryType,
     runsOffBat: number
@@ -143,7 +181,9 @@ export default function ScorerConsole({
       saving ||
       overComplete ||
       newBatsmanRequired ||
-      nextOverOpen
+      nextOverOpen ||
+      inningsCompleting ||
+      matchCompleted
     ) {
       return;
     }
@@ -217,6 +257,19 @@ export default function ScorerConsole({
       );
       setLastAction(state.lastAction);
 
+      if (data.matchCompleted) {
+        setMatchCompleted(true);
+        setLastAction(
+          data.result ?? "MATCH COMPLETED"
+        );
+
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 700);
+
+        return;
+      }
+
       if (state.overComplete) {
         setNextOverOpen(true);
         setNextBowlerId("");
@@ -278,6 +331,10 @@ export default function ScorerConsole({
       setWickets(state.wickets);
       setLegalBalls(state.legalBalls);
       setOverNumber(state.overNumber);
+      setStrikerId(state.strikerId);
+      setNonStrikerId(
+        state.nonStrikerId
+      );
       setBowlerId(state.bowlerId);
       setOverComplete(false);
       setNextOverOpen(false);
@@ -292,12 +349,66 @@ export default function ScorerConsole({
     }
   }
 
+  async function completeInnings() {
+    if (
+      saving ||
+      inningsCompleting ||
+      !inningsCanBeCompleted ||
+      matchCompleted
+    ) {
+      return;
+    }
+
+    setInningsCompleting(true);
+    setSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/scorer/matches/${matchId}/complete-innings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.error ??
+            "Failed to complete the innings."
+        );
+        return;
+      }
+
+      setLastAction(
+        data.action === "MATCH_COMPLETED"
+          ? "MATCH COMPLETED"
+          : "INNINGS COMPLETED"
+      );
+
+      window.location.reload();
+    } catch {
+      setError(
+        "Unable to connect to the scoring server."
+      );
+    } finally {
+      setSaving(false);
+      setInningsCompleting(false);
+    }
+  }
+
   async function recordWicket() {
     if (
       saving ||
       overComplete ||
       nextOverOpen ||
-      newBatsmanRequired
+      newBatsmanRequired ||
+      inningsCompleting ||
+      matchCompleted
     ) {
       return;
     }
@@ -355,6 +466,7 @@ export default function ScorerConsole({
           data.error ??
             "Failed to record wicket."
         );
+
         return;
       }
 
@@ -424,70 +536,122 @@ export default function ScorerConsole({
   }
 
   async function confirmNewBatsman() {
-  if (!newBatsmanId) {
-    setError("Select the new batsman.");
-    return;
-  }
-
-  if (saving) {
-    return;
-  }
-
-  setSaving(true);
-  setError("");
-
-  try {
-    const response = await fetch(
-      `/api/scorer/matches/${matchId}/batsman`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          newBatsmanId,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setError(
-        data.error ??
-          "Failed to select new batsman."
-      );
+    if (!newBatsmanId) {
+      setError("Select the new batsman.");
       return;
     }
 
-    const state = data.state;
+    if (saving) {
+      return;
+    }
 
-    setScore(state.score);
-    setWickets(state.wickets);
-    setLegalBalls(state.legalBalls);
-    setOverNumber(state.overNumber);
-    setStrikerId(state.strikerId);
-    setNonStrikerId(state.nonStrikerId);
-    setBowlerId(state.bowlerId);
-    setOverComplete(Boolean(state.overComplete));
-    setLastAction(state.lastAction);
-
-    setNewBatsmanRequired(false);
-    setNewBatsmanId("");
-    setDismissedPlayerId("");
-    setDismissedPosition("");
+    setSaving(true);
     setError("");
-  } catch {
-    setError(
-      "Unable to connect to the scoring server."
-    );
-  } finally {
-    setSaving(false);
+
+    try {
+      const response = await fetch(
+        `/api/scorer/matches/${matchId}/batsman`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            newBatsmanId,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.error ??
+            "Failed to select new batsman."
+        );
+        return;
+      }
+
+      const state = data.state;
+
+      setScore(state.score);
+      setWickets(state.wickets);
+      setLegalBalls(state.legalBalls);
+      setOverNumber(state.overNumber);
+      setStrikerId(state.strikerId);
+      setNonStrikerId(
+        state.nonStrikerId
+      );
+      setBowlerId(state.bowlerId);
+      setOverComplete(
+        Boolean(state.overComplete)
+      );
+      setLastAction(state.lastAction);
+
+      setNewBatsmanRequired(false);
+      setNewBatsmanId("");
+      setDismissedPlayerId("");
+      setDismissedPosition("");
+      setError("");
+    } catch {
+      setError(
+        "Unable to connect to the scoring server."
+      );
+    } finally {
+      setSaving(false);
+    }
   }
-}
 
   return (
     <section className="mt-6">
+      {target !== null && (
+        <section className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
+                Innings {inningsNumber}
+              </p>
+
+              <h2 className="mt-1 text-2xl font-bold text-white">
+                Target: {target}
+              </h2>
+
+              <p className="mt-1 text-sm text-amber-200/70">
+                {targetReached
+                  ? "Target reached — match completed."
+                  : `${battingTeamName} need ${runsRequired} more run${
+                      runsRequired === 1
+                        ? ""
+                        : "s"
+                    } to win.`}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-slate-950 px-5 py-4 text-center">
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Need
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {runsRequired}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-slate-950 px-5 py-4 text-center">
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Balls Left
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {ballsRemaining ?? "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="text-center">
@@ -504,6 +668,18 @@ export default function ScorerConsole({
             </p>
           </div>
 
+          {matchCompleted && (
+            <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-center">
+              <p className="text-xl font-bold text-emerald-300">
+                MATCH COMPLETED
+              </p>
+
+              <p className="mt-2 text-sm text-emerald-200/70">
+                {lastAction}
+              </p>
+            </div>
+          )}
+
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
               <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -519,7 +695,9 @@ export default function ScorerConsole({
                   saving ||
                   overComplete ||
                   nextOverOpen ||
-                  newBatsmanRequired
+                  newBatsmanRequired ||
+                  inningsCompleting ||
+                  matchCompleted
                 }
                 className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
               >
@@ -563,7 +741,9 @@ export default function ScorerConsole({
                   saving ||
                   overComplete ||
                   nextOverOpen ||
-                  newBatsmanRequired
+                  newBatsmanRequired ||
+                  inningsCompleting ||
+                  matchCompleted
                 }
                 className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
               >
@@ -606,7 +786,9 @@ export default function ScorerConsole({
                 saving ||
                 overComplete ||
                 nextOverOpen ||
-                newBatsmanRequired
+                newBatsmanRequired ||
+                inningsCompleting ||
+                matchCompleted
               }
               className="mt-3 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
             >
@@ -634,60 +816,113 @@ export default function ScorerConsole({
             )}
           </div>
 
-          {overComplete && nextOverOpen && (
-            <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
-              <p className="text-lg font-semibold text-amber-300">
-                Over {overNumber} Complete
-              </p>
+          {overComplete &&
+            nextOverOpen &&
+            !newBatsmanRequired &&
+            !inningsCanBeCompleted &&
+            !matchCompleted && (
+              <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <p className="text-lg font-semibold text-amber-300">
+                  Over {overNumber} Complete
+                </p>
 
-              <p className="mt-1 text-sm text-amber-200/70">
-                Select the bowler for the next over.
-              </p>
+                <p className="mt-1 text-sm text-amber-200/70">
+                  Select the bowler for the next over.
+                </p>
 
-              <select
-                value={nextBowlerId}
-                onChange={(event) =>
-                  setNextBowlerId(
-                    event.target.value
-                  )
-                }
-                disabled={saving}
-                className="mt-4 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
-              >
-                <option value="">
-                  Select Next Bowler
-                </option>
+                <select
+                  value={nextBowlerId}
+                  onChange={(event) =>
+                    setNextBowlerId(
+                      event.target.value
+                    )
+                  }
+                  disabled={saving}
+                  className="mt-4 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
+                >
+                  <option value="">
+                    Select Next Bowler
+                  </option>
 
-                {availableNextBowlers.map(
-                  (player) => (
-                    <option
-                      key={player.id}
-                      value={player.id}
-                    >
-                      {player.name}
-                      {player.jerseyNo !== null
-                        ? ` (#${player.jerseyNo})`
-                        : ""}
-                    </option>
-                  )
-                )}
-              </select>
+                  {availableNextBowlers.map(
+                    (player) => (
+                      <option
+                        key={player.id}
+                        value={player.id}
+                      >
+                        {player.name}
+                        {player.jerseyNo !== null
+                          ? ` (#${player.jerseyNo})`
+                          : ""}
+                      </option>
+                    )
+                  )}
+                </select>
 
-              <button
-                type="button"
-                onClick={() =>
-                  void startNextOver()
-                }
-                disabled={
-                  saving ||
-                  !nextBowlerId
-                }
-                className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                START NEXT OVER
-              </button>
-            </div>
-          )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    void startNextOver()
+                  }
+                  disabled={
+                    saving ||
+                    !nextBowlerId
+                  }
+                  className="mt-4 w-full rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  START NEXT OVER
+                </button>
+              </div>
+            )}
+
+          {inningsCanBeCompleted &&
+            !newBatsmanRequired &&
+            !matchCompleted && (
+              <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+                <p className="text-lg font-semibold text-emerald-300">
+                  {targetReached
+                    ? "Target Reached"
+                    : "Innings Ready to End"}
+                </p>
+
+                <p className="mt-1 text-sm text-emerald-200/70">
+                  {targetReached
+                    ? `${battingTeamName} have reached the target.`
+                    : allOut
+                      ? "The batting side is all out."
+                      : "The maximum number of overs has been completed."}
+                </p>
+
+                <div className="mt-4 rounded-lg bg-slate-950 p-4">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Current Innings Score
+                  </p>
+
+                  <p className="mt-1 text-3xl font-bold">
+                    {score}/{wickets}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void completeInnings()
+                  }
+                  disabled={
+                    saving ||
+                    inningsCompleting ||
+                    targetReached
+                  }
+                  className="mt-4 w-full rounded-lg bg-emerald-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {targetReached
+                    ? "MATCH COMPLETED"
+                    : inningsCompleting
+                      ? "PROCESSING..."
+                      : "END INNINGS"}
+                </button>
+              </div>
+            )}
 
           {newBatsmanRequired && (
             <div className="mt-6 rounded-xl border border-blue-500/30 bg-blue-500/10 p-5">
@@ -744,7 +979,10 @@ export default function ScorerConsole({
           )}
 
           {!overComplete &&
-            !newBatsmanRequired && (
+            !newBatsmanRequired &&
+            !inningsCompleting &&
+            !matchCompleted &&
+            !inningsCanBeCompleted && (
               <>
                 <div className="mt-6">
                   <p className="text-sm font-semibold text-slate-300">
@@ -961,7 +1199,8 @@ export default function ScorerConsole({
 
           {!nextOverOpen &&
             !newBatsmanRequired &&
-            !wicketOpen && (
+            !wicketOpen &&
+            !inningsCompleting && (
               <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">
                 Legal balls: {legalBalls}
               </div>

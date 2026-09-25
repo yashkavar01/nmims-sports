@@ -130,6 +130,18 @@ export default async function ScorerMatchPage({
     );
   }
 
+  const innings = await db.orm.public.CricketInnings
+    .where({
+      matchId: match.id,
+    })
+    .all();
+
+  const currentInnings = [...innings].sort(
+    (a, b) =>
+      b.inningsNumber -
+      a.inningsNumber
+  )[0];
+
   const [
     homeTeam,
     awayTeam,
@@ -139,7 +151,6 @@ export default async function ScorerMatchPage({
     matchPlayers,
     allPlayers,
     allUsers,
-    innings,
     overs,
     openingEvents,
     stateEvents,
@@ -186,28 +197,13 @@ export default async function ScorerMatchPage({
 
     db.orm.public.User.all(),
 
-    db.orm.public.CricketInnings
-      .where({
-        matchId: match.id,
-      })
-      .all(),
-
-    db.orm.public.CricketOver
-      .where({
-        inningsId:
-          (
-            await db.orm.public.CricketInnings
-              .where({
-                matchId: match.id,
-              })
-              .all()
-          ).sort(
-            (a, b) =>
-              b.inningsNumber -
-              a.inningsNumber
-          )[0]?.id ?? ""
-      })
-      .all(),
+    currentInnings
+      ? db.orm.public.CricketOver
+          .where({
+            inningsId: currentInnings.id,
+          })
+          .all()
+      : Promise.resolve([]),
 
     db.orm.public.MatchEvent
       .where({
@@ -223,13 +219,6 @@ export default async function ScorerMatchPage({
       })
       .all(),
   ]);
-
-  const currentInnings =
-    [...innings].sort(
-      (a, b) =>
-        b.inningsNumber -
-        a.inningsNumber
-    )[0];
 
   const currentOver = currentInnings
     ? [...overs].sort(
@@ -713,6 +702,16 @@ export default async function ScorerMatchPage({
               }
               initialLastAction={
                 openingState.lastAction
+              }
+              target={
+                currentInnings.target
+              }
+              maxOvers={
+                cricketConfig?.overs ??
+                0
+              }
+              inningsNumber={
+                currentInnings.inningsNumber
               }
             />
           )}

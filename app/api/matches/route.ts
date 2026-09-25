@@ -350,6 +350,10 @@ export async function POST(request: Request) {
             : null,
         matchNumber: parsedMatchNumber,
         status: "SCHEDULED",
+        format:
+          validatedCricketConfig?.format ?? null,
+        maxOvers:
+          validatedCricketConfig?.overs ?? null,
       });
 
     if (validatedCricketConfig) {
