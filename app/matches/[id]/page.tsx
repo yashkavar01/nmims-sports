@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import db from "@/lib/db";
 
+import LiveScorecard from "./LiveScorecard";
 import MatchSquadForm from "./MatchSquadForm";
 import ScorerAssignmentForm from "./ScorerAssignmentForm";
 import TossForm from "./TossForm";
@@ -35,6 +36,8 @@ export default async function MatchPage({
     allUsers,
     scorerAssignments,
     innings,
+    stateEvents,
+    winnerTeam,
   ] = await Promise.all([
     db.orm.public.Sport.where({
       id: match.sportId,
@@ -73,6 +76,17 @@ export default async function MatchPage({
     db.orm.public.CricketInnings.where({
       matchId: match.id,
     }).all(),
+
+    db.orm.public.MatchEvent.where({
+      matchId: match.id,
+      type: "INNINGS_STATE",
+    }).all(),
+
+    match.winnerTeamId
+      ? db.orm.public.Team.where({
+          id: match.winnerTeamId,
+        }).first()
+      : Promise.resolve(null),
   ]);
 
   if (!homeTeam || !awayTeam) {
@@ -195,6 +209,189 @@ export default async function MatchPage({
       cricketConfig.playersPerTeam &&
     awayPlayingCount ===
       cricketConfig.playersPerTeam;
+
+  /*
+   * Build the initial data for the LiveScorecard component.
+   * This mirrors the shape returned by GET /api/matches/[id]/live
+   * so the component hydrates without a loading state.
+   */
+  function resolvePlayerName(
+    playerId: string | null
+  ): string | null {
+    if (!playerId) return null;
+    const player = allPlayers.find(
+      (p) => p.id === playerId
+    );
+    if (!player) return null;
+    const user = allUsers.find(
+      (u) => u.id === player.userId
+    );
+    return user?.name ?? null;
+  }
+
+  function buildSquad(teamId: string) {
+    return matchPlayers
+      .filter(
+        (mp) =>
+          mp.teamId === teamId &&
+          mp.role === "PLAYING"
+      )
+      .map((mp) => {
+        const player = allPlayers.find(
+          (p) => p.id === mp.playerId
+        );
+        const user = player
+          ? allUsers.find(
+              (u) => u.id === player.userId
+            )
+          : null;
+        return {
+          id: mp.playerId,
+          name: user?.name ?? "Unknown",
+          jerseyNo: player?.jerseyNo ?? null,
+        };
+      });
+  }
+
+  const sortedInnings = [...innings].sort(
+    (a, b) => b.inningsNumber - a.inningsNumber
+  );
+
+  const latestInnings = sortedInnings[0] ?? null;
+
+  /* Resolve latest state event for the current innings */
+  let liveLiveState: {
+    strikerId: string | null;
+    nonStrikerId: string | null;
+    bowlerId: string | null;
+    score: number;
+    wickets: number;
+    legalBalls: number;
+    overNumber: number;
+    lastAction: string;
+    strikerName: string | null;
+    nonStrikerName: string | null;
+    bowlerName: string | null;
+  } | null = null;
+
+  if (latestInnings) {
+    const relevant = stateEvents
+      .filter((event) => {
+        if (!event.data) return false;
+        try {
+          const d = JSON.parse(event.data) as {
+            inningsId?: string;
+          };
+          return d.inningsId === latestInnings.id;
+        } catch {
+          return false;
+        }
+      })
+      .sort(
+        (a, b) =>
+          b.timestamp.epochMilliseconds -
+          a.timestamp.epochMilliseconds
+      );
+
+    if (relevant.length > 0) {
+      try {
+        const d = JSON.parse(
+          relevant[0].data ?? "{}"
+        ) as {
+          strikerId?: string;
+          nonStrikerId?: string;
+          bowlerId?: string;
+          score?: number;
+          wickets?: number;
+          legalBalls?: number;
+          overNumber?: number;
+          lastAction?: string;
+        };
+
+        liveLiveState = {
+          strikerId: d.strikerId ?? null,
+          nonStrikerId: d.nonStrikerId ?? null,
+          bowlerId: d.bowlerId ?? null,
+          score: d.score ?? latestInnings.runs,
+          wickets:
+            d.wickets ?? latestInnings.wickets,
+          legalBalls:
+            d.legalBalls ?? latestInnings.legalBalls,
+          overNumber: d.overNumber ?? 1,
+          lastAction: d.lastAction ?? "",
+          strikerName: resolvePlayerName(
+            d.strikerId ?? null
+          ),
+          nonStrikerName: resolvePlayerName(
+            d.nonStrikerId ?? null
+          ),
+          bowlerName: resolvePlayerName(
+            d.bowlerId ?? null
+          ),
+        };
+      } catch {
+        liveLiveState = null;
+      }
+    }
+  }
+
+  const liveScorecardInitialData = {
+    match: {
+      id: match.id,
+      status: match.status,
+      result: match.result,
+      venue: match.venue,
+      round: match.round,
+      matchNumber: match.matchNumber,
+    },
+    sport: sport
+      ? { id: sport.id, name: sport.name }
+      : null,
+    tournament: tournament
+      ? { id: tournament.id, name: tournament.name }
+      : null,
+    homeTeam: homeTeam
+      ? {
+          id: homeTeam.id,
+          name: homeTeam.name,
+          squad: buildSquad(homeTeam.id),
+        }
+      : null,
+    awayTeam: awayTeam
+      ? {
+          id: awayTeam.id,
+          name: awayTeam.name,
+          squad: buildSquad(awayTeam.id),
+        }
+      : null,
+    winnerTeam: winnerTeam
+      ? { id: winnerTeam.id, name: winnerTeam.name }
+      : null,
+    cricketConfig: cricketConfig
+      ? {
+          format: cricketConfig.format,
+          overs: cricketConfig.overs,
+          playersPerTeam: cricketConfig.playersPerTeam,
+        }
+      : null,
+    innings: innings
+      .slice()
+      .sort(
+        (a, b) => a.inningsNumber - b.inningsNumber
+      )
+      .map((inn) => ({
+        id: inn.id,
+        inningsNumber: inn.inningsNumber,
+        battingTeamId: inn.battingTeamId,
+        bowlingTeamId: inn.bowlingTeamId,
+        runs: inn.runs,
+        wickets: inn.wickets,
+        legalBalls: inn.legalBalls,
+        target: inn.target,
+        status: inn.status,
+      })),
+    liveState: liveLiveState,
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-white md:p-10">
@@ -481,103 +678,83 @@ export default async function MatchPage({
             </section>
           )}
 
-        {match.status === "LIVE" && (
-          <section className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
-                  Live Match
+        {(match.status === "LIVE" ||
+          match.status === "COMPLETED") &&
+          isCricket && (
+            <LiveScorecard
+              matchId={match.id}
+              initialData={liveScorecardInitialData}
+            />
+          )}
+
+        {/*
+         * The innings breakdown is now rendered inside LiveScorecard
+         * for LIVE and COMPLETED cricket matches.  For non-cricket
+         * or SCHEDULED matches we keep a simple fallback.
+         */}
+        {innings.length > 0 &&
+          !isCricket &&
+          match.status !== "SCHEDULED" && (
+            <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <div className="mb-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Match Progress
                 </p>
 
                 <h2 className="mt-2 text-2xl font-bold">
-                  Match is Live
+                  Innings
                 </h2>
-
-                {currentInnings && (
-                  <p className="mt-2 text-sm text-slate-400">
-                    Innings{" "}
-                    {currentInnings.inningsNumber}
-                    {" • "}
-                    {currentInnings.runs}/
-                    {currentInnings.wickets}
-                    {" • "}
-                    {currentInnings.legalBalls} legal
-                    balls
-                  </p>
-                )}
               </div>
 
-              <Link
-                href={`/scorer/matches/${match.id}`}
-                className="rounded-xl bg-emerald-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-emerald-500"
-              >
-                Open Live Scoring
-              </Link>
-            </div>
-          </section>
-        )}
+              <div className="space-y-3">
+                {innings
+                  .slice()
+                  .sort(
+                    (a, b) =>
+                      a.inningsNumber -
+                      b.inningsNumber
+                  )
+                  .map((inning) => {
+                    const battingTeam =
+                      inning.battingTeamId ===
+                      homeTeam.id
+                        ? homeTeam.name
+                        : awayTeam.name;
 
-        {innings.length > 0 && (
-          <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Match Progress
-              </p>
+                    return (
+                      <div
+                        key={inning.id}
+                        className="flex flex-col gap-3 rounded-xl bg-slate-950 p-4 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            Innings{" "}
+                            {inning.inningsNumber}
+                          </p>
 
-              <h2 className="mt-2 text-2xl font-bold">
-                Innings
-              </h2>
-            </div>
+                          <p className="mt-1 text-sm text-slate-500">
+                            {battingTeam}
+                          </p>
+                        </div>
 
-            <div className="space-y-3">
-              {innings
-                .slice()
-                .sort(
-                  (a, b) =>
-                    a.inningsNumber -
-                    b.inningsNumber
-                )
-                .map((inning) => {
-                  const battingTeam =
-                    inning.battingTeamId ===
-                    homeTeam.id
-                      ? homeTeam.name
-                      : awayTeam.name;
+                        <div className="text-left md:text-right">
+                          <p className="text-xl font-bold">
+                            {inning.runs}/
+                            {inning.wickets}
+                          </p>
 
-                  return (
-                    <div
-                      key={inning.id}
-                      className="flex flex-col gap-3 rounded-xl bg-slate-950 p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          Innings{" "}
-                          {inning.inningsNumber}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                          {battingTeam}
-                        </p>
+                          <p className="text-xs text-slate-500">
+                            {inning.legalBalls} legal balls
+                            {" • "}
+                            {inning.status}
+                          </p>
+                        </div>
                       </div>
-
-                      <div className="text-left md:text-right">
-                        <p className="text-xl font-bold">
-                          {inning.runs}/
-                          {inning.wickets}
-                        </p>
-
-                        <p className="text-xs text-slate-500">
-                          {inning.legalBalls} legal balls
-                          {" • "}
-                          {inning.status}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </section>
-        )}
+                    );
+                  })}
+              </div>
+            </section>
+          )}
 
         {currentScorerAssignment && (
           <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
