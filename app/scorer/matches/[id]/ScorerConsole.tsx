@@ -159,6 +159,7 @@ export default function ScorerConsole({
     legalBalls >= maxOvers * 6;
 
   const inningsCanBeCompleted =
+    
     allOut ||
     targetReached ||
     maximumOversReached;
@@ -818,7 +819,6 @@ export default function ScorerConsole({
 
           {overComplete &&
             nextOverOpen &&
-            !newBatsmanRequired &&
             !inningsCanBeCompleted &&
             !matchCompleted && (
               <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
@@ -982,7 +982,8 @@ export default function ScorerConsole({
             !newBatsmanRequired &&
             !inningsCompleting &&
             !matchCompleted &&
-            !inningsCanBeCompleted && (
+            !targetReached &&
+            !maximumOversReached && (
               <>
                 <div className="mt-6">
                   <p className="text-sm font-semibold text-slate-300">
