@@ -21,6 +21,7 @@ type OpeningState = {
   legalBalls: number;
   overComplete: boolean;
   lastAction: string;
+  freeHit: boolean;
 };
 
 type ScorerMatchPageProps = {
@@ -348,6 +349,8 @@ export default async function ScorerMatchPage({
             lastAction:
               data.lastAction ??
               "Delivery recorded.",
+            freeHit:
+              data.freeHit ?? false,
           };
         }
       } catch {
@@ -430,6 +433,7 @@ export default async function ScorerMatchPage({
             overComplete: false,
             lastAction:
               "Innings started.",
+            freeHit: false,
           };
         }
       } catch {
@@ -702,6 +706,9 @@ export default async function ScorerMatchPage({
               }
               initialLastAction={
                 openingState.lastAction
+              }
+              initialFreeHit={
+                openingState.freeHit
               }
               target={
                 currentInnings.target

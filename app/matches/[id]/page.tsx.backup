@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import db from "@/lib/db";
 
 import MatchSquadForm from "./MatchSquadForm";
-import ScorerAssignmentForm from "./ScorerAssignmentForm";
 import TossForm from "./TossForm";
 
 type PageProps = {
@@ -18,7 +17,11 @@ export default async function MatchPage({
 }: PageProps) {
   const { id } = await params;
 
-  const match = await db.orm.public.Match.where({ id }).first();
+  const match = await db.match.findUnique({
+    where: {
+      id,
+    },
+  });
 
   if (!match) {
     notFound();
@@ -36,43 +39,71 @@ export default async function MatchPage({
     scorerAssignments,
     innings,
   ] = await Promise.all([
-    db.orm.public.Sport.where({
-      id: match.sportId,
-    }).first(),
+    db.sport.findUnique({
+      where: {
+        id: match.sportId,
+      },
+    }),
 
     match.tournamentId
-      ? db.orm.public.Tournament.where({
-          id: match.tournamentId,
-        }).first()
+      ? db.tournament.findUnique({
+          where: {
+            id: match.tournamentId,
+          },
+        })
       : Promise.resolve(null),
 
-    db.orm.public.Team.where({
-      id: match.homeTeamId,
-    }).first(),
+    db.team.findUnique({
+      where: {
+        id: match.homeTeamId,
+      },
+    }),
 
-    db.orm.public.Team.where({
-      id: match.awayTeamId,
-    }).first(),
+    db.team.findUnique({
+      where: {
+        id: match.awayTeamId,
+      },
+    }),
 
-    db.orm.public.CricketMatchConfig.where({
-      matchId: match.id,
-    }).first(),
+    db.cricketMatchConfig.findUnique({
+      where: {
+        matchId: match.id,
+      },
+    }),
 
-    db.orm.public.MatchPlayer.where({
-      matchId: match.id,
-    }).all(),
+    db.matchPlayer.findMany({
+      where: {
+        matchId: match.id,
+      },
+    }),
 
-    db.orm.public.Player.all(),
+    db.player.findMany({
+      where: {
+        teamId: {
+          in: [
+            match.homeTeamId,
+            match.awayTeamId,
+          ],
+        },
+      },
+    }),
 
-    db.orm.public.User.all(),
+    db.user.findMany(),
 
-    db.orm.public.MatchScorerAssignment.where({
-      matchId: match.id,
-    }).all(),
+    db.matchScorerAssignment.findMany({
+      where: {
+        matchId: match.id,
+      },
+    }),
 
-    db.orm.public.CricketInnings.where({
-      matchId: match.id,
-    }).all(),
+    db.cricketInnings.findMany({
+      where: {
+        matchId: match.id,
+      },
+      orderBy: {
+        inningsNumber: "asc",
+      },
+    }),
   ]);
 
   if (!homeTeam || !awayTeam) {
@@ -90,6 +121,18 @@ export default async function MatchPage({
   const awayMatchPlayers = matchPlayers.filter(
     (player) =>
       player.teamId === match.awayTeamId
+  );
+
+  const homeSelectedIds = new Set(
+    homeMatchPlayers.map(
+      (player) => player.playerId
+    )
+  );
+
+  const awaySelectedIds = new Set(
+    awayMatchPlayers.map(
+      (player) => player.playerId
+    )
   );
 
   const homePlayers = allPlayers
@@ -126,52 +169,19 @@ export default async function MatchPage({
       };
     });
 
-  /*
-   * Only ASSIGNED and ACTIVE assignments are considered
-   * current assignments.
-   *
-   * REVOKED assignments remain in the database as history
-   * but must not appear as the current scorer.
-   */
-  const currentScorerAssignment =
-    scorerAssignments.find(
-      (assignment) =>
-        assignment.status === "ASSIGNED" ||
-        assignment.status === "ACTIVE"
-    ) ?? null;
+  const activeScorer =
+    scorerAssignments.length > 0
+      ? scorerAssignments.find(
+          (assignment) => assignment.status === "ACTIVE"
+        ) ?? scorerAssignments[0]
+      : null;
 
-  const currentScorerUser = currentScorerAssignment
+  const activeScorerUser = activeScorer
     ? allUsers.find(
         (user) =>
-          user.id ===
-          currentScorerAssignment.scorerId
+          user.id === activeScorer.scorerId
       )
     : null;
-
-  const availableScorers = allUsers
-    .filter((user) => user.role === "SCORER")
-    .map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    }));
-
-  /*
-   * Temporary development fallback.
-   *
-   * Once authentication is wired into the application,
-   * this should be replaced by the authenticated admin's
-   * user ID.
-   */
-  const assigningAdmin =
-    allUsers.find(
-      (user) =>
-        user.role === "SPORTS_ADMIN" ||
-        user.role === "SUPER_ADMIN"
-    ) ?? null;
-
-  const scorerAssigned =
-    currentScorerAssignment !== null;
 
   const currentInnings =
     innings.find(
@@ -214,11 +224,9 @@ export default async function MatchPage({
 
             <h1 className="mt-2 text-4xl font-bold tracking-tight">
               {homeTeam.name}
-
               <span className="mx-3 text-slate-600">
                 vs
               </span>
-
               {awayTeam.name}
             </h1>
 
@@ -415,25 +423,6 @@ export default async function MatchPage({
           />
         )}
 
-        {isCricket && cricketConfig && (
-          <ScorerAssignmentForm
-            matchId={match.id}
-            scorers={availableScorers}
-            assignedById={
-              assigningAdmin?.id ?? null
-            }
-            currentScorer={
-              currentScorerUser
-                ? {
-                    id: currentScorerUser.id,
-                    name: currentScorerUser.name,
-                    email: currentScorerUser.email,
-                  }
-                : null
-            }
-          />
-        )}
-
         {isCricket &&
           cricketConfig &&
           match.status === "SCHEDULED" && (
@@ -448,24 +437,12 @@ export default async function MatchPage({
                 </h2>
 
                 <p className="mt-2 text-sm text-slate-400">
-                  Complete the Playing XI and assign the
-                  match scorer before starting the toss.
+                  Confirm both Playing XIs before starting
+                  the match.
                 </p>
               </div>
 
-              {!squadConfirmed ? (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-                  Both teams must have exactly{" "}
-                  {cricketConfig.playersPerTeam}{" "}
-                  Playing XI players before the toss
-                  can be started.
-                </div>
-              ) : !scorerAssigned ? (
-                <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4 text-sm text-purple-300">
-                  A scorer must be assigned to this match
-                  before the toss can be started.
-                </div>
-              ) : (
+              {squadConfirmed ? (
                 <TossForm
                   matchId={match.id}
                   homeTeam={{
@@ -477,6 +454,13 @@ export default async function MatchPage({
                     name: awayTeam.name,
                   }}
                 />
+              ) : (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+                  Both teams must have exactly{" "}
+                  {cricketConfig.playersPerTeam}{" "}
+                  Playing XI players before the toss
+                  can be started.
+                </div>
               )}
             </section>
           )}
@@ -495,8 +479,7 @@ export default async function MatchPage({
 
                 {currentInnings && (
                   <p className="mt-2 text-sm text-slate-400">
-                    Innings{" "}
-                    {currentInnings.inningsNumber}
+                    Innings {currentInnings.inningsNumber}
                     {" • "}
                     {currentInnings.runs}/
                     {currentInnings.wickets}
@@ -530,77 +513,69 @@ export default async function MatchPage({
             </div>
 
             <div className="space-y-3">
-              {innings
-                .slice()
-                .sort(
-                  (a, b) =>
-                    a.inningsNumber -
-                    b.inningsNumber
-                )
-                .map((inning) => {
-                  const battingTeam =
-                    inning.battingTeamId ===
-                    homeTeam.id
-                      ? homeTeam.name
-                      : awayTeam.name;
+              {innings.map((inning) => {
+                const battingTeam =
+                  inning.battingTeamId ===
+                  homeTeam.id
+                    ? homeTeam.name
+                    : awayTeam.name;
 
-                  return (
-                    <div
-                      key={inning.id}
-                      className="flex flex-col gap-3 rounded-xl bg-slate-950 p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          Innings{" "}
-                          {inning.inningsNumber}
-                        </p>
+                return (
+                  <div
+                    key={inning.id}
+                    className="flex flex-col gap-3 rounded-xl bg-slate-950 p-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        Innings {inning.inningsNumber}
+                      </p>
 
-                        <p className="mt-1 text-sm text-slate-500">
-                          {battingTeam}
-                        </p>
-                      </div>
-
-                      <div className="text-left md:text-right">
-                        <p className="text-xl font-bold">
-                          {inning.runs}/
-                          {inning.wickets}
-                        </p>
-
-                        <p className="text-xs text-slate-500">
-                          {inning.legalBalls} legal balls
-                          {" • "}
-                          {inning.status}
-                        </p>
-                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {battingTeam}
+                      </p>
                     </div>
-                  );
-                })}
+
+                    <div className="text-left md:text-right">
+                      <p className="text-xl font-bold">
+                        {inning.runs}/
+                        {inning.wickets}
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        {inning.legalBalls} legal balls
+                        {" • "}
+                        {inning.status}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
 
-        {currentScorerAssignment && (
+        {activeScorer && (
           <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Current Scorer
+              Scorer Assignment
             </p>
 
             <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-xl font-bold">
-                  {currentScorerUser?.name ??
+                  {activeScorerUser?.name ??
                     "Assigned Scorer"}
                 </h2>
 
-                {currentScorerUser?.email && (
+                {activeScorerUser?.email && (
                   <p className="mt-1 text-sm text-slate-500">
-                    {currentScorerUser.email}
+                    {activeScorerUser.email}
                   </p>
                 )}
               </div>
 
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
-                {currentScorerAssignment.status}
+              <span className="rounded-full border border-slate-700 px-3 py-1 text-xs">
+                {activeScorer.status}
               </span>
             </div>
           </section>

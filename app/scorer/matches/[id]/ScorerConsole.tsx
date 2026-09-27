@@ -38,6 +38,7 @@ type ScorerConsoleProps = {
   initialBowlerId: string;
   initialOverComplete: boolean;
   initialLastAction: string;
+  initialFreeHit?: boolean;
   target: number | null;
   maxOvers: number;
   inningsNumber: number;
@@ -58,13 +59,19 @@ export default function ScorerConsole({
   initialBowlerId,
   initialOverComplete,
   initialLastAction,
+  initialFreeHit = false,
   target,
   maxOvers,
   inningsNumber,
 }: ScorerConsoleProps) {
-  const [score, setScore] = useState(initialScore);
-  const [wickets, setWickets] = useState(initialWickets);
-  const [legalBalls, setLegalBalls] = useState(initialLegalBalls);
+  const [score, setScore] =
+    useState(initialScore);
+
+  const [wickets, setWickets] =
+    useState(initialWickets);
+
+  const [legalBalls, setLegalBalls] =
+    useState(initialLegalBalls);
 
   const [overNumber, setOverNumber] =
     useState(initialOverNumber);
@@ -90,8 +97,14 @@ export default function ScorerConsole({
   const [lastAction, setLastAction] =
     useState(initialLastAction);
 
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [freeHit, setFreeHit] =
+    useState(initialFreeHit);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   const [wicketOpen, setWicketOpen] =
     useState(false);
@@ -100,10 +113,19 @@ export default function ScorerConsole({
     useState("");
 
   const [dismissedPosition, setDismissedPosition] =
-    useState<"STRIKER" | "NON_STRIKER" | "">("");
+    useState<
+      "STRIKER" | "NON_STRIKER" | ""
+    >("");
 
   const [wicketType, setWicketType] =
-    useState<WicketType>("BOWLED");
+    useState<WicketType>(
+      initialFreeHit
+        ? "RUN_OUT"
+        : "BOWLED"
+    );
+
+  const [wicketRuns, setWicketRuns] =
+    useState(0);
 
   const [newBatsmanRequired, setNewBatsmanRequired] =
     useState(false);
@@ -117,26 +139,36 @@ export default function ScorerConsole({
   const [matchCompleted, setMatchCompleted] =
     useState(false);
 
-  const striker = battingPlayers.find(
-    (player) => player.id === strikerId
-  );
+  const striker =
+    battingPlayers.find(
+      (player) =>
+        player.id === strikerId
+    );
 
-  const nonStriker = battingPlayers.find(
-    (player) => player.id === nonStrikerId
-  );
+  const nonStriker =
+    battingPlayers.find(
+      (player) =>
+        player.id === nonStrikerId
+    );
 
-  const bowler = bowlingPlayers.find(
-    (player) => player.id === bowlerId
-  );
+  const bowler =
+    bowlingPlayers.find(
+      (player) =>
+        player.id === bowlerId
+    );
 
-  const currentBall = legalBalls % 6;
+  const currentBall =
+    legalBalls % 6;
 
   const overs =
-    `${Math.floor(legalBalls / 6)}.${currentBall}`;
+    `${Math.floor(
+      legalBalls / 6
+    )}.${currentBall}`;
 
   const availableNextBowlers =
     bowlingPlayers.filter(
-      (player) => player.id !== bowlerId
+      (player) =>
+        player.id !== bowlerId
     );
 
   const availableNewBatsmen =
@@ -148,7 +180,11 @@ export default function ScorerConsole({
     );
 
   const allOut =
-    wickets >= Math.max(battingPlayers.length - 1, 1);
+    wickets >=
+    Math.max(
+      battingPlayers.length - 1,
+      1
+    );
 
   const targetReached =
     target !== null &&
@@ -156,22 +192,29 @@ export default function ScorerConsole({
 
   const maximumOversReached =
     maxOvers > 0 &&
-    legalBalls >= maxOvers * 6;
+    legalBalls >=
+      maxOvers * 6;
 
   const inningsCanBeCompleted =
-    
     allOut ||
     targetReached ||
     maximumOversReached;
 
   const runsRequired =
     target !== null
-      ? Math.max(target - score, 0)
+      ? Math.max(
+          target - score,
+          0
+        )
       : null;
 
   const ballsRemaining =
     maxOvers > 0
-      ? Math.max(maxOvers * 6 - legalBalls, 0)
+      ? Math.max(
+          maxOvers * 6 -
+            legalBalls,
+          0
+        )
       : null;
 
   async function recordDelivery(
@@ -204,24 +247,27 @@ export default function ScorerConsole({
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/scorer/matches/${matchId}/delivery`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            strikerId,
-            nonStrikerId,
-            bowlerId,
-            deliveryType,
-            runsOffBat,
-          }),
-        }
-      );
+      const response =
+        await fetch(
+          `/api/scorer/matches/${matchId}/delivery`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              strikerId,
+              nonStrikerId,
+              bowlerId,
+              deliveryType,
+              runsOffBat,
+            }),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         if (
@@ -242,31 +288,56 @@ export default function ScorerConsole({
         return;
       }
 
-      const state = data.state;
+      const state =
+        data.state;
 
       setScore(state.score);
-      setWickets(state.wickets);
-      setLegalBalls(state.legalBalls);
-      setOverNumber(state.overNumber);
-      setStrikerId(state.strikerId);
+      setWickets(
+        state.wickets
+      );
+      setLegalBalls(
+        state.legalBalls
+      );
+      setOverNumber(
+        state.overNumber
+      );
+      setStrikerId(
+        state.strikerId
+      );
       setNonStrikerId(
         state.nonStrikerId
       );
-      setBowlerId(state.bowlerId);
-      setOverComplete(
-        Boolean(state.overComplete)
+      setBowlerId(
+        state.bowlerId
       );
-      setLastAction(state.lastAction);
+      setOverComplete(
+        Boolean(
+          state.overComplete
+        )
+      );
+      setFreeHit(
+        Boolean(
+          state.freeHit
+        )
+      );
+      setLastAction(
+        state.lastAction
+      );
 
       if (data.matchCompleted) {
         setMatchCompleted(true);
+
         setLastAction(
-          data.result ?? "MATCH COMPLETED"
+          data.result ??
+            "MATCH COMPLETED"
         );
 
-        window.setTimeout(() => {
-          window.location.reload();
-        }, 700);
+        window.setTimeout(
+          () => {
+            window.location.reload();
+          },
+          700
+        );
 
         return;
       }
@@ -292,7 +363,10 @@ export default function ScorerConsole({
       return;
     }
 
-    if (nextBowlerId === bowlerId) {
+    if (
+      nextBowlerId ===
+      bowlerId
+    ) {
       setError(
         "A bowler cannot bowl consecutive overs."
       );
@@ -303,20 +377,24 @@ export default function ScorerConsole({
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/scorer/matches/${matchId}/next-over`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            bowlerId: nextBowlerId,
-          }),
-        }
-      );
+      const response =
+        await fetch(
+          `/api/scorer/matches/${matchId}/next-over`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              bowlerId:
+                nextBowlerId,
+            }),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         setError(
@@ -326,21 +404,39 @@ export default function ScorerConsole({
         return;
       }
 
-      const state = data.state;
+      const state =
+        data.state;
 
       setScore(state.score);
-      setWickets(state.wickets);
-      setLegalBalls(state.legalBalls);
-      setOverNumber(state.overNumber);
-      setStrikerId(state.strikerId);
+      setWickets(
+        state.wickets
+      );
+      setLegalBalls(
+        state.legalBalls
+      );
+      setOverNumber(
+        state.overNumber
+      );
+      setStrikerId(
+        state.strikerId
+      );
       setNonStrikerId(
         state.nonStrikerId
       );
-      setBowlerId(state.bowlerId);
+      setBowlerId(
+        state.bowlerId
+      );
       setOverComplete(false);
       setNextOverOpen(false);
       setNextBowlerId("");
-      setLastAction(state.lastAction);
+      setFreeHit(
+        Boolean(
+          state.freeHit
+        )
+      );
+      setLastAction(
+        state.lastAction
+      );
     } catch {
       setError(
         "Unable to connect to the scoring server."
@@ -365,17 +461,20 @@ export default function ScorerConsole({
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/scorer/matches/${matchId}/complete-innings`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response =
+        await fetch(
+          `/api/scorer/matches/${matchId}/complete-innings`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         setError(
@@ -386,7 +485,8 @@ export default function ScorerConsole({
       }
 
       setLastAction(
-        data.action === "MATCH_COMPLETED"
+        data.action ===
+          "MATCH_COMPLETED"
           ? "MATCH COMPLETED"
           : "INNINGS COMPLETED"
       );
@@ -432,25 +532,58 @@ export default function ScorerConsole({
       return;
     }
 
+    if (
+      freeHit &&
+      wicketType !==
+        "RUN_OUT"
+    ) {
+      setError(
+        "Free Hit allows only RUN OUT."
+      );
+      return;
+    }
+
+    if (
+      wicketType ===
+        "RUN_OUT" &&
+      (wicketRuns < 0 ||
+        !Number.isInteger(
+          wicketRuns
+        ))
+    ) {
+      setError(
+        "Enter a valid number of runs."
+      );
+      return;
+    }
+
     setSaving(true);
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/scorer/matches/${matchId}/wicket`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            dismissedPlayerId,
-            wicketType,
-          }),
-        }
-      );
+      const response =
+        await fetch(
+          `/api/scorer/matches/${matchId}/wicket`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              dismissedPlayerId,
+              wicketType,
+              runsOffBat:
+                wicketType ===
+                "RUN_OUT"
+                  ? wicketRuns
+                  : 0,
+            }),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         if (
@@ -471,32 +604,75 @@ export default function ScorerConsole({
         return;
       }
 
-      const state = data.state;
+      const state =
+        data.state;
 
       setScore(state.score);
-      setWickets(state.wickets);
-      setLegalBalls(state.legalBalls);
-      setOverNumber(state.overNumber);
-      setStrikerId(state.strikerId);
+      setWickets(
+        state.wickets
+      );
+      setLegalBalls(
+        state.legalBalls
+      );
+      setOverNumber(
+        state.overNumber
+      );
+      setStrikerId(
+        state.strikerId
+      );
       setNonStrikerId(
         state.nonStrikerId
       );
-      setBowlerId(state.bowlerId);
-      setOverComplete(
-        Boolean(state.overComplete)
+      setBowlerId(
+        state.bowlerId
       );
-      setLastAction(state.lastAction);
+      setOverComplete(
+        Boolean(
+          state.overComplete
+        )
+      );
+      setFreeHit(
+        Boolean(
+          state.freeHit
+        )
+      );
+      setLastAction(
+        state.lastAction
+      );
 
       setNewBatsmanRequired(
-        Boolean(state.newBatsmanRequired)
+        Boolean(
+          state.newBatsmanRequired
+        )
       );
 
-      if (state.overComplete) {
+      setNewBatsmanId("");
+      setDismissedPlayerId("");
+      setDismissedPosition("");
+      setWicketRuns(0);
+      setWicketOpen(false);
+
+      if (
+        state.overComplete
+      ) {
         setNextOverOpen(true);
       }
 
-      setNewBatsmanId("");
-      setWicketOpen(false);
+      if (data.matchCompleted) {
+        setMatchCompleted(true);
+
+        setLastAction(
+          data.result ??
+            "MATCH COMPLETED"
+        );
+
+        window.setTimeout(
+          () => {
+            window.location.reload();
+          },
+          700
+        );
+      }
     } catch {
       setError(
         "Unable to connect to the scoring server."
@@ -506,14 +682,22 @@ export default function ScorerConsole({
     }
   }
 
-  function recordRuns(runs: number) {
-    void recordDelivery("NORMAL", runs);
+  function recordRuns(
+    runs: number
+  ) {
+    void recordDelivery(
+      "NORMAL",
+      runs
+    );
   }
 
   function recordExtra(
     type: DeliveryType
   ) {
-    void recordDelivery(type, 0);
+    void recordDelivery(
+      type,
+      0
+    );
   }
 
   function openWicketPanel() {
@@ -530,15 +714,30 @@ export default function ScorerConsole({
       return;
     }
 
-    setDismissedPlayerId(strikerId);
-    setDismissedPosition("STRIKER");
-    setWicketType("BOWLED");
+    setDismissedPlayerId(
+      strikerId
+    );
+
+    setDismissedPosition(
+      "STRIKER"
+    );
+
+    setWicketType(
+      freeHit
+        ? "RUN_OUT"
+        : "BOWLED"
+    );
+
+    setWicketRuns(0);
+
     setWicketOpen(true);
   }
 
   async function confirmNewBatsman() {
     if (!newBatsmanId) {
-      setError("Select the new batsman.");
+      setError(
+        "Select the new batsman."
+      );
       return;
     }
 
@@ -550,20 +749,23 @@ export default function ScorerConsole({
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/scorer/matches/${matchId}/batsman`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            newBatsmanId,
-          }),
-        }
-      );
+      const response =
+        await fetch(
+          `/api/scorer/matches/${matchId}/batsman`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              newBatsmanId,
+            }),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         setError(
@@ -573,23 +775,46 @@ export default function ScorerConsole({
         return;
       }
 
-      const state = data.state;
+      const state =
+        data.state;
 
       setScore(state.score);
-      setWickets(state.wickets);
-      setLegalBalls(state.legalBalls);
-      setOverNumber(state.overNumber);
-      setStrikerId(state.strikerId);
+      setWickets(
+        state.wickets
+      );
+      setLegalBalls(
+        state.legalBalls
+      );
+      setOverNumber(
+        state.overNumber
+      );
+      setStrikerId(
+        state.strikerId
+      );
       setNonStrikerId(
         state.nonStrikerId
       );
-      setBowlerId(state.bowlerId);
-      setOverComplete(
-        Boolean(state.overComplete)
+      setBowlerId(
+        state.bowlerId
       );
-      setLastAction(state.lastAction);
+      setOverComplete(
+        Boolean(
+          state.overComplete
+        )
+      );
+      setFreeHit(
+        Boolean(
+          state.freeHit
+        )
+      );
+      setLastAction(
+        state.lastAction
+      );
 
-      setNewBatsmanRequired(false);
+      setNewBatsmanRequired(
+        false
+      );
+
       setNewBatsmanId("");
       setDismissedPlayerId("");
       setDismissedPosition("");
@@ -610,7 +835,8 @@ export default function ScorerConsole({
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
-                Innings {inningsNumber}
+                Innings{" "}
+                {inningsNumber}
               </p>
 
               <h2 className="mt-1 text-2xl font-bold text-white">
@@ -621,7 +847,8 @@ export default function ScorerConsole({
                 {targetReached
                   ? "Target reached — match completed."
                   : `${battingTeamName} need ${runsRequired} more run${
-                      runsRequired === 1
+                      runsRequired ===
+                      1
                         ? ""
                         : "s"
                     } to win.`}
@@ -645,7 +872,8 @@ export default function ScorerConsole({
                 </p>
 
                 <p className="mt-1 text-2xl font-bold">
-                  {ballsRemaining ?? "—"}
+                  {ballsRemaining ??
+                    "—"}
                 </p>
               </div>
             </div>
@@ -667,6 +895,13 @@ export default function ScorerConsole({
             <p className="mt-2 text-lg text-slate-400">
               {overs} overs
             </p>
+
+            {freeHit &&
+              !matchCompleted && (
+                <div className="mx-auto mt-4 inline-flex rounded-full border border-yellow-400/40 bg-yellow-400/10 px-5 py-2 text-sm font-bold uppercase tracking-wide text-yellow-300">
+                  FREE HIT — RUN OUT ONLY
+                </div>
+              )}
           </div>
 
           {matchCompleted && (
@@ -690,7 +925,10 @@ export default function ScorerConsole({
               <select
                 value={strikerId}
                 onChange={(event) =>
-                  setStrikerId(event.target.value)
+                  setStrikerId(
+                    event.target
+                      .value
+                  )
                 }
                 disabled={
                   saving ||
@@ -706,22 +944,30 @@ export default function ScorerConsole({
                   Select Striker
                 </option>
 
-                {battingPlayers.map((player) => (
-                  <option
-                    key={player.id}
-                    value={player.id}
-                  >
-                    {player.name}
-                    {player.jerseyNo !== null
-                      ? ` (#${player.jerseyNo})`
-                      : ""}
-                  </option>
-                ))}
+                {battingPlayers.map(
+                  (player) => (
+                    <option
+                      key={
+                        player.id
+                      }
+                      value={
+                        player.id
+                      }
+                    >
+                      {player.name}
+                      {player.jerseyNo !==
+                      null
+                        ? ` (#${player.jerseyNo})`
+                        : ""}
+                    </option>
+                  )
+                )}
               </select>
 
               {striker && (
                 <p className="mt-2 text-sm text-slate-400">
-                  Batting: {striker.name}
+                  Batting:{" "}
+                  {striker.name}
                 </p>
               )}
             </div>
@@ -732,10 +978,13 @@ export default function ScorerConsole({
               </p>
 
               <select
-                value={nonStrikerId}
+                value={
+                  nonStrikerId
+                }
                 onChange={(event) =>
                   setNonStrikerId(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 }
                 disabled={
@@ -752,22 +1001,32 @@ export default function ScorerConsole({
                   Select Non-Striker
                 </option>
 
-                {battingPlayers.map((player) => (
-                  <option
-                    key={player.id}
-                    value={player.id}
-                  >
-                    {player.name}
-                    {player.jerseyNo !== null
-                      ? ` (#${player.jerseyNo})`
-                      : ""}
-                  </option>
-                ))}
+                {battingPlayers.map(
+                  (player) => (
+                    <option
+                      key={
+                        player.id
+                      }
+                      value={
+                        player.id
+                      }
+                    >
+                      {player.name}
+                      {player.jerseyNo !==
+                      null
+                        ? ` (#${player.jerseyNo})`
+                        : ""}
+                    </option>
+                  )
+                )}
               </select>
 
               {nonStriker && (
                 <p className="mt-2 text-sm text-slate-400">
-                  Batting: {nonStriker.name}
+                  Batting:{" "}
+                  {
+                    nonStriker.name
+                  }
                 </p>
               )}
             </div>
@@ -781,7 +1040,10 @@ export default function ScorerConsole({
             <select
               value={bowlerId}
               onChange={(event) =>
-                setBowlerId(event.target.value)
+                setBowlerId(
+                  event.target
+                    .value
+                )
               }
               disabled={
                 saving ||
@@ -797,22 +1059,30 @@ export default function ScorerConsole({
                 Select Bowler
               </option>
 
-              {bowlingPlayers.map((player) => (
-                <option
-                  key={player.id}
-                  value={player.id}
-                >
-                  {player.name}
-                  {player.jerseyNo !== null
-                    ? ` (#${player.jerseyNo})`
-                    : ""}
-                </option>
-              ))}
+              {bowlingPlayers.map(
+                (player) => (
+                  <option
+                    key={
+                      player.id
+                    }
+                    value={
+                      player.id
+                    }
+                  >
+                    {player.name}
+                    {player.jerseyNo !==
+                    null
+                      ? ` (#${player.jerseyNo})`
+                      : ""}
+                  </option>
+                )
+              )}
             </select>
 
             {bowler && (
               <p className="mt-2 text-sm text-slate-400">
-                Bowling: {bowler.name}
+                Bowling:{" "}
+                {bowler.name}
               </p>
             )}
           </div>
@@ -823,7 +1093,9 @@ export default function ScorerConsole({
             !matchCompleted && (
               <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
                 <p className="text-lg font-semibold text-amber-300">
-                  Over {overNumber} Complete
+                  Over{" "}
+                  {overNumber}{" "}
+                  Complete
                 </p>
 
                 <p className="mt-1 text-sm text-amber-200/70">
@@ -831,10 +1103,15 @@ export default function ScorerConsole({
                 </p>
 
                 <select
-                  value={nextBowlerId}
-                  onChange={(event) =>
+                  value={
+                    nextBowlerId
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setNextBowlerId(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   disabled={saving}
@@ -847,11 +1124,16 @@ export default function ScorerConsole({
                   {availableNextBowlers.map(
                     (player) => (
                       <option
-                        key={player.id}
-                        value={player.id}
+                        key={
+                          player.id
+                        }
+                        value={
+                          player.id
+                        }
                       >
                         {player.name}
-                        {player.jerseyNo !== null
+                        {player.jerseyNo !==
+                        null
                           ? ` (#${player.jerseyNo})`
                           : ""}
                       </option>
@@ -899,7 +1181,8 @@ export default function ScorerConsole({
                   </p>
 
                   <p className="mt-1 text-3xl font-bold">
-                    {score}/{wickets}
+                    {score}/
+                    {wickets}
                   </p>
                 </div>
 
@@ -931,15 +1214,17 @@ export default function ScorerConsole({
               </p>
 
               <p className="mt-1 text-sm text-blue-200/70">
-                Select the replacement batsman
-                before recording the next delivery.
+                Select the replacement batsman before recording the next delivery.
               </p>
 
               <select
-                value={newBatsmanId}
+                value={
+                  newBatsmanId
+                }
                 onChange={(event) =>
                   setNewBatsmanId(
-                    event.target.value
+                    event.target
+                      .value
                   )
                 }
                 disabled={saving}
@@ -952,11 +1237,16 @@ export default function ScorerConsole({
                 {availableNewBatsmen.map(
                   (player) => (
                     <option
-                      key={player.id}
-                      value={player.id}
+                      key={
+                        player.id
+                      }
+                      value={
+                        player.id
+                      }
                     >
                       {player.name}
-                      {player.jerseyNo !== null
+                      {player.jerseyNo !==
+                      null
                         ? ` (#${player.jerseyNo})`
                         : ""}
                     </option>
@@ -966,7 +1256,9 @@ export default function ScorerConsole({
 
               <button
                 type="button"
-                onClick={confirmNewBatsman}
+                onClick={
+                  confirmNewBatsman
+                }
                 disabled={
                   saving ||
                   !newBatsmanId
@@ -997,7 +1289,9 @@ export default function ScorerConsole({
                           key={runs}
                           type="button"
                           onClick={() =>
-                            recordRuns(runs)
+                            recordRuns(
+                              runs
+                            )
                           }
                           disabled={saving}
                           className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-lg font-semibold transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1018,7 +1312,9 @@ export default function ScorerConsole({
                     <button
                       type="button"
                       onClick={() =>
-                        recordExtra("WIDE")
+                        recordExtra(
+                          "WIDE"
+                        )
                       }
                       disabled={saving}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 font-semibold transition hover:border-slate-500 disabled:opacity-50"
@@ -1029,7 +1325,9 @@ export default function ScorerConsole({
                     <button
                       type="button"
                       onClick={() =>
-                        recordExtra("NO_BALL")
+                        recordExtra(
+                          "NO_BALL"
+                        )
                       }
                       disabled={saving}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 font-semibold transition hover:border-slate-500 disabled:opacity-50"
@@ -1040,7 +1338,9 @@ export default function ScorerConsole({
                     <button
                       type="button"
                       onClick={() =>
-                        recordExtra("BYE")
+                        recordExtra(
+                          "BYE"
+                        )
                       }
                       disabled={saving}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 font-semibold transition hover:border-slate-500 disabled:opacity-50"
@@ -1051,7 +1351,9 @@ export default function ScorerConsole({
                     <button
                       type="button"
                       onClick={() =>
-                        recordExtra("LEG_BYE")
+                        recordExtra(
+                          "LEG_BYE"
+                        )
                       }
                       disabled={saving}
                       className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 font-semibold transition hover:border-slate-500 disabled:opacity-50"
@@ -1063,11 +1365,19 @@ export default function ScorerConsole({
 
                 <button
                   type="button"
-                  onClick={openWicketPanel}
+                  onClick={
+                    openWicketPanel
+                  }
                   disabled={saving}
-                  className="mt-6 w-full rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-4 font-semibold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+                  className={`mt-6 w-full rounded-xl border px-4 py-4 font-semibold transition disabled:opacity-50 ${
+                    freeHit
+                      ? "border-yellow-400/50 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20"
+                      : "border-red-500/50 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  }`}
                 >
-                  WICKET
+                  {freeHit
+                    ? "RUN OUT — FREE HIT"
+                    : "WICKET"}
                 </button>
               </>
             )}
@@ -1078,25 +1388,42 @@ export default function ScorerConsole({
                 Record Wicket
               </p>
 
+              {freeHit && (
+                <div className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-3 text-sm font-semibold text-yellow-300">
+                  FREE HIT: only RUN OUT is allowed.
+                </div>
+              )}
+
               <div className="mt-4">
                 <label className="text-xs uppercase tracking-wide text-slate-500">
                   Dismissed Batsman
                 </label>
 
                 <select
-                  value={dismissedPlayerId}
-                  onChange={(event) => {
+                  value={
+                    dismissedPlayerId
+                  }
+                  onChange={(
+                    event
+                  ) => {
                     const value =
-                      event.target.value;
+                      event.target
+                        .value;
 
-                    setDismissedPlayerId(value);
+                    setDismissedPlayerId(
+                      value
+                    );
 
-                    if (value === strikerId) {
+                    if (
+                      value ===
+                      strikerId
+                    ) {
                       setDismissedPosition(
                         "STRIKER"
                       );
                     } else if (
-                      value === nonStrikerId
+                      value ===
+                      nonStrikerId
                     ) {
                       setDismissedPosition(
                         "NON_STRIKER"
@@ -1110,11 +1437,20 @@ export default function ScorerConsole({
                     Select Dismissed Batsman
                   </option>
 
-                  <option value={strikerId}>
-                    {striker?.name ?? "Striker"}
+                  <option
+                    value={
+                      strikerId
+                    }
+                  >
+                    {striker?.name ??
+                      "Striker"}
                   </option>
 
-                  <option value={nonStrikerId}>
+                  <option
+                    value={
+                      nonStrikerId
+                    }
+                  >
                     {nonStriker?.name ??
                       "Non-Striker"}
                   </option>
@@ -1127,41 +1463,113 @@ export default function ScorerConsole({
                 </label>
 
                 <select
-                  value={wicketType}
-                  onChange={(event) =>
+                  value={
+                    wicketType
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setWicketType(
                       event.target
                         .value as WicketType
                     )
                   }
-                  disabled={saving}
+                  disabled={
+                    saving ||
+                    freeHit
+                  }
                   className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
                 >
-                  <option value="BOWLED">
-                    Bowled
-                  </option>
+                  {!freeHit && (
+                    <>
+                      <option value="BOWLED">
+                        Bowled
+                      </option>
 
-                  <option value="CAUGHT">
-                    Caught
-                  </option>
+                      <option value="CAUGHT">
+                        Caught
+                      </option>
 
-                  <option value="LBW">
-                    LBW
-                  </option>
+                      <option value="LBW">
+                        LBW
+                      </option>
+                    </>
+                  )}
 
                   <option value="RUN_OUT">
                     Run Out
                   </option>
 
-                  <option value="STUMPED">
-                    Stumped
-                  </option>
+                  {!freeHit && (
+                    <>
+                      <option value="STUMPED">
+                        Stumped
+                      </option>
 
-                  <option value="HIT_WICKET">
-                    Hit Wicket
-                  </option>
+                      <option value="HIT_WICKET">
+                        Hit Wicket
+                      </option>
+                    </>
+                  )}
                 </select>
               </div>
+
+              {wicketType ===
+                "RUN_OUT" && (
+                <div className="mt-4">
+                  <label className="text-xs uppercase tracking-wide text-slate-500">
+                    Runs Completed
+                  </label>
+
+                  <select
+                    value={
+                      wicketRuns
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setWicketRuns(
+                        Number(
+                          event.target
+                            .value
+                        )
+                      )
+                    }
+                    disabled={
+                      saving
+                    }
+                    className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none disabled:opacity-50"
+                  >
+                    <option value={0}>
+                      0 Runs
+                    </option>
+
+                    <option value={1}>
+                      1 Run
+                    </option>
+
+                    <option value={2}>
+                      2 Runs
+                    </option>
+
+                    <option value={3}>
+                      3 Runs
+                    </option>
+
+                    <option value={4}>
+                      4 Runs
+                    </option>
+
+                    <option value={6}>
+                      6 Runs
+                    </option>
+                  </select>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    Record runs completed before the run out on the same delivery.
+                  </p>
+                </div>
+              )}
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button
@@ -1181,7 +1589,9 @@ export default function ScorerConsole({
                 <button
                   type="button"
                   onClick={() =>
-                    setWicketOpen(false)
+                    setWicketOpen(
+                      false
+                    )
                   }
                   disabled={saving}
                   className="rounded-lg border border-slate-700 px-4 py-3 font-semibold text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
@@ -1203,7 +1613,8 @@ export default function ScorerConsole({
             !wicketOpen &&
             !inningsCompleting && (
               <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950 p-4 text-sm text-slate-400">
-                Legal balls: {legalBalls}
+                Legal balls:{" "}
+                {legalBalls}
               </div>
             )}
         </section>
@@ -1249,6 +1660,22 @@ export default function ScorerConsole({
               </div>
             </div>
           </section>
+
+          {freeHit && (
+            <section className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-6">
+              <p className="text-xs uppercase tracking-wide text-yellow-400">
+                Special Delivery State
+              </p>
+
+              <p className="mt-2 text-xl font-bold text-yellow-300">
+                FREE HIT
+              </p>
+
+              <p className="mt-2 text-sm text-yellow-200/70">
+                The next legal delivery is a Free Hit. Only a run out can dismiss the batter.
+              </p>
+            </section>
+          )}
 
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-lg font-semibold">
@@ -1340,7 +1767,8 @@ export default function ScorerConsole({
         </div>
 
         <div className="mt-4 text-sm text-slate-500">
-          Bowling: {bowlingTeamName}
+          Bowling:{" "}
+          {bowlingTeamName}
         </div>
       </section>
     </section>

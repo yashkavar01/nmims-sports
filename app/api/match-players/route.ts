@@ -47,36 +47,46 @@ export async function POST(request: Request) {
 
     if (!matchId) {
       return NextResponse.json(
-        { error: "Match ID is required." },
+        {
+          error: "Match ID is required.",
+        },
         { status: 400 }
       );
     }
 
     if (!Array.isArray(players)) {
       return NextResponse.json(
-        { error: "Players must be provided as an array." },
+        {
+          error: "Players must be provided as an array.",
+        },
         { status: 400 }
       );
     }
 
-    const match = await db.orm.public.Match
-      .where({ id: matchId })
-      .first();
+    const match =
+      await db.orm.public.Match
+        .where({ id: matchId })
+        .first();
 
     if (!match) {
       return NextResponse.json(
-        { error: "Match not found." },
+        {
+          error: "Match not found.",
+        },
         { status: 404 }
       );
     }
 
-    const sport = await db.orm.public.Sport
-      .where({ id: match.sportId })
-      .first();
+    const sport =
+      await db.orm.public.Sport
+        .where({ id: match.sportId })
+        .first();
 
     if (!sport) {
       return NextResponse.json(
-        { error: "Sport not found." },
+        {
+          error: "Sport not found.",
+        },
         { status: 404 }
       );
     }
@@ -138,8 +148,7 @@ export async function POST(request: Request) {
     if (invalidRole) {
       return NextResponse.json(
         {
-          error:
-            "Invalid squad player role.",
+          error: "Invalid squad player role.",
         },
         { status: 400 }
       );
@@ -160,10 +169,6 @@ export async function POST(request: Request) {
 
       duplicatePlayers.add(player.playerId);
     }
-
-    const playerIds = players.map(
-      (player) => player.playerId
-    );
 
     const officialPlayers =
       await db.orm.public.Player.all();
@@ -232,13 +237,32 @@ export async function POST(request: Request) {
             player.role === "SUBSTITUTE"
         );
 
+      const maximumSquadSize =
+        cricketConfig.playersPerTeam +
+        cricketConfig.substitutesPerTeam;
+
       if (
-        playingPlayers.length >
+        teamPlayers.length >
+        maximumSquadSize
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              `${team.name} cannot have more than ${maximumSquadSize} total squad players ` +
+              `(${cricketConfig.playersPerTeam} playing + ${cricketConfig.substitutesPerTeam} substitutes).`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (
+        playingPlayers.length !==
         cricketConfig.playersPerTeam
       ) {
         return NextResponse.json(
           {
-            error: `${team.name} cannot have more than ${cricketConfig.playersPerTeam} playing players.`,
+            error:
+              `${team.name} must have exactly ${cricketConfig.playersPerTeam} playing players.`,
           },
           { status: 400 }
         );
@@ -250,7 +274,8 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json(
           {
-            error: `${team.name} cannot have more than ${cricketConfig.substitutesPerTeam} substitutes.`,
+            error:
+              `${team.name} cannot have more than ${cricketConfig.substitutesPerTeam} substitutes.`,
           },
           { status: 400 }
         );
@@ -269,7 +294,8 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json(
           {
-            error: `${team.name} playing players must have valid positions.`,
+            error:
+              `${team.name} playing players must have valid positions.`,
           },
           { status: 400 }
         );
@@ -284,7 +310,8 @@ export async function POST(request: Request) {
       ) {
         return NextResponse.json(
           {
-            error: `${team.name} cannot have duplicate playing positions.`,
+            error:
+              `${team.name} cannot have duplicate playing positions.`,
           },
           { status: 400 }
         );
@@ -294,7 +321,8 @@ export async function POST(request: Request) {
         ...positions,
       ].sort(
         (a, b) =>
-          (a as number) - (b as number)
+          (a as number) -
+          (b as number)
       );
 
       for (
@@ -308,7 +336,8 @@ export async function POST(request: Request) {
         ) {
           return NextResponse.json(
             {
-              error: `${team.name} playing positions must start from 1 and be continuous.`,
+              error:
+                `${team.name} playing positions must start from 1 and be continuous.`,
             },
             { status: 400 }
           );

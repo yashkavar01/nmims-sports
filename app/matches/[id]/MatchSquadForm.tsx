@@ -71,13 +71,41 @@ export default function MatchSquadForm({
   }, [existingPlayers]);
 
   const [selectedPlayers, setSelectedPlayers] =
-    useState<Map<string, SelectedPlayer>>(initialSelection);
+    useState<Map<string, SelectedPlayer>>(
+      initialSelection
+    );
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  function togglePlayer(player: SquadPlayer, teamId: string) {
+  const maximumSquadSize =
+    playersPerTeam + substitutesPerTeam;
+
+  function getTeamSelection(teamId: string) {
+    return Array.from(
+      selectedPlayers.values()
+    ).filter(
+      (player) => player.teamId === teamId
+    );
+  }
+
+  function getPlayingPlayers(teamId: string) {
+    return getTeamSelection(teamId).filter(
+      (player) => player.role === "PLAYING"
+    );
+  }
+
+  function getSubstitutes(teamId: string) {
+    return getTeamSelection(teamId).filter(
+      (player) => player.role === "SUBSTITUTE"
+    );
+  }
+
+  function togglePlayer(
+    player: SquadPlayer,
+    teamId: string
+  ) {
     setSelectedPlayers((current) => {
       const next = new Map(current);
 
@@ -86,23 +114,49 @@ export default function MatchSquadForm({
         return next;
       }
 
-      const teamPlayingCount = Array.from(next.values()).filter(
-        (item) =>
-          item.teamId === teamId &&
-          item.role === "PLAYING"
-      ).length;
+      const teamSelection =
+        Array.from(next.values()).filter(
+          (item) => item.teamId === teamId
+        );
+
+      if (
+        teamSelection.length >=
+        maximumSquadSize
+      ) {
+        return next;
+      }
+
+      const teamPlayingCount =
+        teamSelection.filter(
+          (item) => item.role === "PLAYING"
+        ).length;
+
+      const teamSubstituteCount =
+        teamSelection.filter(
+          (item) =>
+            item.role === "SUBSTITUTE"
+        ).length;
+
+      if (
+        teamPlayingCount >= playersPerTeam &&
+        teamSubstituteCount >=
+          substitutesPerTeam
+      ) {
+        return next;
+      }
+
+      const shouldPlay =
+        teamPlayingCount < playersPerTeam;
 
       next.set(player.id, {
         playerId: player.id,
         teamId,
-        role:
-          teamPlayingCount < playersPerTeam
-            ? "PLAYING"
-            : "SUBSTITUTE",
-        position:
-          teamPlayingCount < playersPerTeam
-            ? teamPlayingCount + 1
-            : null,
+        role: shouldPlay
+          ? "PLAYING"
+          : "SUBSTITUTE",
+        position: shouldPlay
+          ? teamPlayingCount + 1
+          : null,
       });
 
       return next;
@@ -123,14 +177,18 @@ export default function MatchSquadForm({
       }
 
       if (role === "PLAYING") {
-        const playingCount = Array.from(next.values()).filter(
-          (item) =>
-            item.teamId === teamId &&
-            item.role === "PLAYING" &&
-            item.playerId !== playerId
-        ).length;
+        const playingCount =
+          Array.from(next.values()).filter(
+            (item) =>
+              item.teamId === teamId &&
+              item.role === "PLAYING" &&
+              item.playerId !== playerId
+          ).length;
 
-        if (playingCount >= playersPerTeam) {
+        if (
+          playingCount >=
+          playersPerTeam
+        ) {
           return next;
         }
 
@@ -140,6 +198,21 @@ export default function MatchSquadForm({
           position: playingCount + 1,
         });
       } else {
+        const substituteCount =
+          Array.from(next.values()).filter(
+            (item) =>
+              item.teamId === teamId &&
+              item.role === "SUBSTITUTE" &&
+              item.playerId !== playerId
+          ).length;
+
+        if (
+          substituteCount >=
+          substitutesPerTeam
+        ) {
+          return next;
+        }
+
         next.set(playerId, {
           ...existing,
           role: "SUBSTITUTE",
@@ -164,7 +237,9 @@ export default function MatchSquadForm({
       }
 
       const position =
-        value === "" ? null : Number(value);
+        value === ""
+          ? null
+          : Number(value);
 
       next.set(playerId, {
         ...existing,
@@ -175,45 +250,55 @@ export default function MatchSquadForm({
     });
   }
 
-  function getTeamSelection(teamId: string) {
-    return Array.from(selectedPlayers.values()).filter(
-      (player) => player.teamId === teamId
-    );
-  }
-
-  function getPlayingPlayers(teamId: string) {
-    return getTeamSelection(teamId).filter(
-      (player) => player.role === "PLAYING"
-    );
-  }
-
-  function getSubstitutes(teamId: string) {
-    return getTeamSelection(teamId).filter(
-      (player) => player.role === "SUBSTITUTE"
-    );
-  }
-
   function validateTeam(
     team: Team
   ): string | null {
-    const selected = getTeamSelection(team.id);
-    const playing = getPlayingPlayers(team.id);
-    const substitutes = getSubstitutes(team.id);
+    const selected =
+      getTeamSelection(team.id);
 
-    if (playing.length !== playersPerTeam) {
+    const playing =
+      getPlayingPlayers(team.id);
+
+    const substitutes =
+      getSubstitutes(team.id);
+
+    if (
+      selected.length >
+      maximumSquadSize
+    ) {
+      return `${team.name}: maximum ${maximumSquadSize} total squad players are allowed.`;
+    }
+
+    if (
+      playing.length !==
+      playersPerTeam
+    ) {
       return `${team.name}: select exactly ${playersPerTeam} playing players.`;
     }
 
-    if (substitutes.length > substitutesPerTeam) {
+    if (
+      substitutes.length >
+      substitutesPerTeam
+    ) {
       return `${team.name}: maximum ${substitutesPerTeam} substitutes are allowed.`;
     }
 
     const positions = playing
       .map((player) => player.position)
-      .sort((a, b) => (a ?? 0) - (b ?? 0));
+      .sort(
+        (a, b) =>
+          (a ?? 0) - (b ?? 0)
+      );
 
-    for (let index = 0; index < positions.length; index++) {
-      if (positions[index] !== index + 1) {
+    for (
+      let index = 0;
+      index < positions.length;
+      index++
+    ) {
+      if (
+        positions[index] !==
+        index + 1
+      ) {
         return `${team.name}: playing positions must be continuous from 1 to ${playersPerTeam}.`;
       }
     }
@@ -229,14 +314,16 @@ export default function MatchSquadForm({
     setError("");
     setMessage("");
 
-    const homeError = validateTeam(homeTeam);
+    const homeError =
+      validateTeam(homeTeam);
 
     if (homeError) {
       setError(homeError);
       return;
     }
 
-    const awayError = validateTeam(awayTeam);
+    const awayError =
+      validateTeam(awayTeam);
 
     if (awayError) {
       setError(awayError);
@@ -246,28 +333,39 @@ export default function MatchSquadForm({
     setSaving(true);
 
     try {
-      const players = Array.from(selectedPlayers.values());
+      const players =
+        Array.from(
+          selectedPlayers.values()
+        );
 
-      const response = await fetch("/api/match-players", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          matchId,
-          players,
-        }),
-      });
+      const response = await fetch(
+        "/api/match-players",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            matchId,
+            players,
+          }),
+        }
+      );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.error ?? "Failed to save match squad."
+          data?.error ??
+            "Failed to save match squad."
         );
       }
 
-      setMessage("Playing XI and substitutes saved successfully.");
+      setMessage(
+        "Playing XI and substitutes saved successfully."
+      );
 
       router.refresh();
     } catch (err) {
@@ -282,9 +380,18 @@ export default function MatchSquadForm({
   }
 
   function renderTeam(team: Team) {
-    const selected = getTeamSelection(team.id);
-    const playing = getPlayingPlayers(team.id);
-    const substitutes = getSubstitutes(team.id);
+    const selected =
+      getTeamSelection(team.id);
+
+    const playing =
+      getPlayingPlayers(team.id);
+
+    const substitutes =
+      getSubstitutes(team.id);
+
+    const squadFull =
+      selected.length >=
+      maximumSquadSize;
 
     return (
       <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
@@ -301,10 +408,25 @@ export default function MatchSquadForm({
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300">
-            {selected.length} selected
+          <div
+            className={`rounded-lg border px-3 py-2 text-xs ${
+              squadFull
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-300"
+            }`}
+          >
+            {selected.length}/
+            {maximumSquadSize} selected
           </div>
         </div>
+
+        {squadFull && (
+          <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+            Squad full —{" "}
+            {playersPerTeam} Playing XI +{" "}
+            {substitutesPerTeam} substitutes.
+          </div>
+        )}
 
         <div className="space-y-3">
           {team.players.length === 0 ? (
@@ -313,8 +435,18 @@ export default function MatchSquadForm({
             </div>
           ) : (
             team.players.map((player) => {
-              const selection = selectedPlayers.get(player.id);
-              const isSelected = Boolean(selection);
+              const selection =
+                selectedPlayers.get(
+                  player.id
+                );
+
+              const isSelected =
+                Boolean(selection);
+
+              const checkboxDisabled =
+                saving ||
+                (!isSelected &&
+                  squadFull);
 
               return (
                 <div
@@ -322,14 +454,25 @@ export default function MatchSquadForm({
                   className={`rounded-xl border p-4 transition ${
                     isSelected
                       ? "border-blue-500/50 bg-blue-500/10"
-                      : "border-slate-800 bg-slate-900"
+                      : checkboxDisabled
+                        ? "border-slate-800 bg-slate-950 opacity-50"
+                        : "border-slate-800 bg-slate-900"
                   }`}
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <label className="flex cursor-pointer items-center gap-3">
+                    <label
+                      className={`flex items-center gap-3 ${
+                        checkboxDisabled
+                          ? "cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
+                    >
                       <input
                         type="checkbox"
                         checked={isSelected}
+                        disabled={
+                          checkboxDisabled
+                        }
                         onChange={() =>
                           togglePlayer(
                             player,
@@ -344,58 +487,99 @@ export default function MatchSquadForm({
                           {player.name}
                         </p>
 
-                        <p className="text-xs text-slate-500">
-                          {player.jerseyNo !== null
-                            ? `Jersey #${player.jerseyNo}`
-                            : "No jersey number"}
+                        <p className="text-sm text-slate-500">
+                          {player.jerseyNo !==
+                          null
+                            ? `#${player.jerseyNo}`
+                            : "No jersey"}
                         </p>
                       </div>
                     </label>
 
-                    {selection && (
-                      <div className="flex flex-wrap items-center gap-3">
-                        <select
-                          value={selection.role}
-                          onChange={(event) =>
-                            updateRole(
-                              player.id,
-                              team.id,
-                              event.target
-                                .value as
-                                | "PLAYING"
-                                | "SUBSTITUTE"
-                            )
-                          }
-                          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none"
-                        >
-                          <option value="PLAYING">
-                            Playing XI
-                          </option>
-                          <option value="SUBSTITUTE">
-                            Substitute
-                          </option>
-                        </select>
-
-                        {selection.role === "PLAYING" && (
-                          <input
-                            type="number"
-                            min={1}
-                            max={playersPerTeam}
+                    {isSelected &&
+                      selection && (
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                          <select
                             value={
-                              selection.position ?? ""
+                              selection.role
                             }
-                            onChange={(event) =>
-                              updatePosition(
+                            onChange={(
+                              event
+                            ) =>
+                              updateRole(
                                 player.id,
-                                event.target.value
+                                team.id,
+                                event.target
+                                  .value as
+                                  | "PLAYING"
+                                  | "SUBSTITUTE"
                               )
                             }
-                            className="w-24 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none"
-                            placeholder="Position"
-                          />
-                        )}
-                      </div>
-                    )}
+                            disabled={saving}
+                            className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none disabled:opacity-50"
+                          >
+                            <option value="PLAYING">
+                              PLAYING
+                            </option>
+
+                            <option value="SUBSTITUTE">
+                              SUBSTITUTE
+                            </option>
+                          </select>
+
+                          {selection.role ===
+                            "PLAYING" && (
+                            <select
+                              value={
+                                selection.position ??
+                                ""
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updatePosition(
+                                  player.id,
+                                  event
+                                    .target
+                                    .value
+                                )
+                              }
+                              disabled={saving}
+                              className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none disabled:opacity-50"
+                            >
+                              <option value="">
+                                Position
+                              </option>
+
+                              {Array.from(
+                                {
+                                  length:
+                                    playersPerTeam,
+                                },
+                                (
+                                  _,
+                                  index
+                                ) => (
+                                  <option
+                                    key={
+                                      index +
+                                      1
+                                    }
+                                    value={
+                                      index +
+                                      1
+                                    }
+                                  >
+                                    Position{" "}
+                                    {index +
+                                      1}
+                                  </option>
+                                )
+                              )}
+                            </select>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
               );
@@ -407,53 +591,50 @@ export default function MatchSquadForm({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className="mb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
-          Match Setup
-        </p>
-
-        <h2 className="mt-2 text-2xl font-bold text-white">
-          Playing XI & Substitutes
+    <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-bold text-white">
+          Match Squad
         </h2>
 
-        <p className="mt-2 text-sm text-slate-400">
-          Select the players who will be available for this
-          match and define the Playing XI.
+        <p className="text-sm text-slate-400">
+          Select exactly{" "}
+          {playersPerTeam} Playing XI players
+          for each team. Up to{" "}
+          {substitutesPerTeam} substitutes can
+          also be selected.
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
         {renderTeam(homeTeam)}
         {renderTeam(awayTeam)}
       </div>
 
-      {(error || message) && (
-        <div className="mt-6">
-          {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
-          )}
-
-          {message && (
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-              {message}
-            </div>
-          )}
+      {error && (
+        <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          {error}
         </div>
       )}
 
-      <div className="mt-6 flex justify-end">
-        <button
-          type="button"
-          onClick={saveSquad}
-          disabled={saving}
-          className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving ? "Saving Squad..." : "Save Match Squad"}
-        </button>
-      </div>
+      {message && (
+        <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+          {message}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() =>
+          void saveSquad()
+        }
+        disabled={saving}
+        className="mt-6 w-full rounded-xl bg-blue-500 px-5 py-4 font-semibold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {saving
+          ? "SAVING..."
+          : "SAVE MATCH SQUAD"}
+      </button>
     </section>
   );
 }

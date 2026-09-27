@@ -5,6 +5,24 @@ import db from "../../../../../../lib/db";
 type WicketRequest = {
   dismissedPlayerId?: string;
   wicketType?: string;
+  runsOffBat?: number;
+};
+
+type InningsStateData = {
+  inningsId?: string;
+  overId?: string;
+  overNumber?: number;
+  ballNumber?: number;
+  strikerId?: string;
+  nonStrikerId?: string;
+  bowlerId?: string;
+  score?: number;
+  wickets?: number;
+  legalBalls?: number;
+  overComplete?: boolean;
+  inningsComplete?: boolean;
+  lastAction?: string;
+  freeHit?: boolean;
 };
 
 const VALID_WICKET_TYPES = new Set([
@@ -14,6 +32,15 @@ const VALID_WICKET_TYPES = new Set([
   "RUN_OUT",
   "STUMPED",
   "HIT_WICKET",
+]);
+
+const VALID_RUN_OUT_RUNS = new Set([
+  0,
+  1,
+  2,
+  3,
+  4,
+  6,
 ]);
 
 export async function POST(
@@ -28,7 +55,13 @@ export async function POST(
     const dismissedPlayerId =
       body.dismissedPlayerId?.trim();
 
-    const wicketType = body.wicketType?.trim();
+    const wicketType =
+      body.wicketType?.trim();
+
+    const runsOffBat =
+      typeof body.runsOffBat === "number"
+        ? body.runsOffBat
+        : 0;
 
     if (!dismissedPlayerId || !wicketType) {
       return NextResponse.json(
@@ -49,26 +82,71 @@ export async function POST(
       );
     }
 
-    const scorer = await db.orm.public.User
-      .where({
-        email: "scorer@nmims.local",
-      })
-      .first();
-
-    if (!scorer || scorer.role !== "SCORER") {
+    if (
+      !Number.isInteger(runsOffBat) ||
+      runsOffBat < 0
+    ) {
       return NextResponse.json(
         {
-          error: "Scorer account not found.",
+          error:
+            "Runs off bat must be a non-negative integer.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      wicketType !== "RUN_OUT" &&
+      runsOffBat !== 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Only a run-out can be recorded with runs on the same delivery.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      wicketType === "RUN_OUT" &&
+      !VALID_RUN_OUT_RUNS.has(runsOffBat)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Run-out runs must be 0, 1, 2, 3, 4 or 6.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const scorer =
+      await db.orm.public.User
+        .where({
+          email: "scorer@nmims.local",
+        })
+        .first();
+
+    if (
+      !scorer ||
+      scorer.role !== "SCORER"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Scorer account not found.",
         },
         { status: 403 }
       );
     }
 
-    const match = await db.orm.public.Match
-      .where({
-        id: matchId,
-      })
-      .first();
+    const match =
+      await db.orm.public.Match
+        .where({
+          id: matchId,
+        })
+        .first();
 
     if (!match) {
       return NextResponse.json(
@@ -99,8 +177,10 @@ export async function POST(
 
     if (
       !assignment ||
-      (assignment.status !== "ASSIGNED" &&
-        assignment.status !== "ACTIVE")
+      (
+        assignment.status !== "ASSIGNED" &&
+        assignment.status !== "ACTIVE"
+      )
     ) {
       return NextResponse.json(
         {
@@ -111,26 +191,34 @@ export async function POST(
       );
     }
 
-    const innings = await db.orm.public.CricketInnings
-      .where({
-        matchId,
-      })
-      .all();
+    const innings =
+      await db.orm.public.CricketInnings
+        .where({
+          matchId,
+        })
+        .all();
 
     if (innings.length === 0) {
       return NextResponse.json(
         {
-          error: "No innings has been started.",
+          error:
+            "No innings has been started.",
         },
         { status: 409 }
       );
     }
 
-    const currentInnings = [...innings].sort(
-      (a, b) => b.inningsNumber - a.inningsNumber
-    )[0];
+    const currentInnings =
+      [...innings].sort(
+        (a, b) =>
+          b.inningsNumber -
+          a.inningsNumber
+      )[0];
 
-    if (currentInnings.status !== "IN_PROGRESS") {
+    if (
+      currentInnings.status !==
+      "IN_PROGRESS"
+    ) {
       return NextResponse.json(
         {
           error:
@@ -164,13 +252,15 @@ export async function POST(
         })
         .all();
 
-    const dismissedPlayer = matchPlayers.find(
-      (player) =>
-        player.playerId === dismissedPlayerId &&
-        player.role === "PLAYING" &&
-        player.teamId ===
-          currentInnings.battingTeamId
-    );
+    const dismissedPlayer =
+      matchPlayers.find(
+        (player) =>
+          player.playerId ===
+            dismissedPlayerId &&
+          player.role === "PLAYING" &&
+          player.teamId ===
+            currentInnings.battingTeamId
+      );
 
     if (!dismissedPlayer) {
       return NextResponse.json(
@@ -189,54 +279,63 @@ export async function POST(
         })
         .all();
 
-    const inningsEvents = matchEvents
-      .filter((event) => {
-        if (!event.data) {
-          return false;
-        }
+    const inningsEvents =
+      matchEvents
+        .filter((event) => {
+          if (!event.data) {
+            return false;
+          }
 
-        try {
-          const data = JSON.parse(event.data) as {
-            inningsId?: string;
-          };
+          try {
+            const data =
+              JSON.parse(
+                event.data
+              ) as InningsStateData;
 
-          return (
-            data.inningsId ===
-            currentInnings.id
-          );
-        } catch {
-          return false;
-        }
-      })
-      .sort(
-  (a, b) =>
-    b.timestamp.epochMilliseconds -
-    a.timestamp.epochMilliseconds
-)
+            return (
+              data.inningsId ===
+              currentInnings.id
+            );
+          } catch {
+            return false;
+          }
+        })
+        .sort(
+          (a, b) =>
+            b.timestamp.epochMilliseconds -
+            a.timestamp.epochMilliseconds
+        );
 
     const latestInningsState =
       inningsEvents.find(
         (event) =>
-          event.type === "INNINGS_STATE"
+          event.type ===
+          "INNINGS_STATE"
       );
 
     let currentStrikerId = "";
     let currentNonStrikerId = "";
+    let currentBowlerId = "";
+    let freeHit = false;
 
     if (latestInningsState?.data) {
       try {
-        const state = JSON.parse(
-          latestInningsState.data
-        ) as {
-          strikerId?: string;
-          nonStrikerId?: string;
-        };
+        const state =
+          JSON.parse(
+            latestInningsState.data
+          ) as InningsStateData;
 
         currentStrikerId =
           state.strikerId ?? "";
 
         currentNonStrikerId =
           state.nonStrikerId ?? "";
+
+        currentBowlerId =
+          state.bowlerId ?? "";
+
+        freeHit =
+          state.freeHit ?? false;
       } catch {
         return NextResponse.json(
           {
@@ -265,18 +364,21 @@ export async function POST(
       }
 
       try {
-        const state = JSON.parse(
-          openingEvent.data
-        ) as {
-          strikerId?: string;
-          nonStrikerId?: string;
-        };
+        const state =
+          JSON.parse(
+            openingEvent.data
+          ) as InningsStateData;
 
         currentStrikerId =
           state.strikerId ?? "";
 
         currentNonStrikerId =
           state.nonStrikerId ?? "";
+
+        currentBowlerId =
+          state.bowlerId ?? "";
+
+        freeHit = false;
       } catch {
         return NextResponse.json(
           {
@@ -303,10 +405,34 @@ export async function POST(
       );
     }
 
+    if (!currentBowlerId) {
+      return NextResponse.json(
+        {
+          error:
+            "Current bowler could not be determined.",
+        },
+        { status: 409 }
+      );
+    }
+
+    if (
+      freeHit &&
+      wicketType !== "RUN_OUT"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Free Hit allows only RUN OUT.",
+        },
+        { status: 409 }
+      );
+    }
+
     const overs =
       await db.orm.public.CricketOver
         .where({
-          inningsId: currentInnings.id,
+          inningsId:
+            currentInnings.id,
         })
         .all();
 
@@ -320,20 +446,25 @@ export async function POST(
       );
     }
 
-    const currentOver = [...overs].sort(
-      (a, b) => b.overNumber - a.overNumber
-    )[0];
+    const currentOver =
+      [...overs].sort(
+        (a, b) =>
+          b.overNumber -
+          a.overNumber
+      )[0];
 
     const deliveries =
       await db.orm.public.CricketDelivery
         .where({
-          overId: currentOver.id,
+          overId:
+            currentOver.id,
         })
         .all();
 
     const legalBallsInOver =
       deliveries.filter(
-        (delivery) => delivery.legalBall
+        (delivery) =>
+          delivery.legalBall
       ).length;
 
     if (legalBallsInOver >= 6) {
@@ -350,64 +481,108 @@ export async function POST(
     const ballNumber =
       deliveries.length + 1;
 
-    const delivery =
-      await db.orm.public.CricketDelivery.create({
-        inningsId: currentInnings.id,
-        overId: currentOver.id,
-        ballNumber,
-        legalBall: true,
-        strikerId:
-          currentStrikerId,
-        nonStrikerId:
-          currentNonStrikerId,
-        bowlerId:
-          currentOver.bowlerId,
-        runsOffBat: 0,
-        extras: 0,
-        totalRuns: 0,
-        extraType: null,
-        wicket: true,
-        wicketType,
-        dismissedPlayerId,
-        data: JSON.stringify({
-          scorerId: scorer.id,
-          deliveryType: "WICKET",
-        }),
-      });
+    const totalRuns =
+      runsOffBat;
+
+    const newRuns =
+      currentInnings.runs +
+      totalRuns;
 
     const newWickets =
-      currentInnings.wickets + 1;
+      currentInnings.wickets +
+      1;
 
-    const inningsComplete =
+    const newLegalBalls =
+      currentInnings.legalBalls +
+      1;
+
+    const allOut =
       newWickets >=
       config.playersPerTeam - 1;
 
-    const newInningsStatus =
-      inningsComplete
-        ? "COMPLETED"
-        : "IN_PROGRESS";
+    const maximumOversReached =
+      newLegalBalls >=
+      config.overs * 6;
 
-    const newLegalBalls =
-      currentInnings.legalBalls + 1;
+    const targetReached =
+      currentInnings.target !== null &&
+      newRuns >=
+        currentInnings.target;
+
+    const inningsComplete =
+      allOut ||
+      maximumOversReached ||
+      targetReached;
+
+    const overComplete =
+      legalBallsInOver + 1 >= 6;
+
+    const delivery =
+      await db.orm.public.CricketDelivery.create(
+        {
+          inningsId:
+            currentInnings.id,
+          overId:
+            currentOver.id,
+          ballNumber,
+          legalBall: true,
+          strikerId:
+            currentStrikerId,
+          nonStrikerId:
+            currentNonStrikerId,
+          bowlerId:
+            currentOver.bowlerId,
+          runsOffBat,
+          extras: 0,
+          totalRuns,
+          extraType: null,
+          wicket: true,
+          wicketType,
+          dismissedPlayerId,
+          data: JSON.stringify({
+            scorerId:
+              scorer.id,
+            deliveryType:
+              "WICKET",
+            freeHit,
+          }),
+        }
+      );
 
     await db.orm.public.CricketInnings
       .where({
         id: currentInnings.id,
       })
       .update({
+        runs: newRuns,
         wickets: newWickets,
-        legalBalls: newLegalBalls,
-        status: newInningsStatus,
+        legalBalls:
+          newLegalBalls,
+        status:
+          inningsComplete
+            ? "COMPLETED"
+            : "IN_PROGRESS",
       });
-
-    const overComplete =
-      legalBallsInOver + 1 >= 6;
 
     let nextStrikerId =
       currentStrikerId;
 
     let nextNonStrikerId =
       currentNonStrikerId;
+
+    if (
+      runsOffBat % 2 ===
+      1
+    ) {
+      const rotatedStriker =
+        nextStrikerId;
+
+      nextStrikerId =
+        nextNonStrikerId;
+
+      nextNonStrikerId =
+        rotatedStriker;
+    }
 
     if (
       dismissedPlayerId ===
@@ -423,7 +598,10 @@ export async function POST(
       nextNonStrikerId = "";
     }
 
-    if (overComplete) {
+    if (
+      overComplete &&
+      !inningsComplete
+    ) {
       const endOverStriker =
         nextStrikerId;
 
@@ -434,77 +612,230 @@ export async function POST(
         endOverStriker;
     }
 
+    const newBatsmanRequired =
+      !inningsComplete &&
+      (
+        !nextStrikerId ||
+        !nextNonStrikerId
+      );
+
     const lastAction =
-      `Wicket — ${wicketType.replace(
-        "_",
-        " "
-      )}`;
+      runsOffBat > 0
+        ? `Wicket — ${wicketType.replace(
+            "_",
+            " "
+          )} + ${runsOffBat} run${
+            runsOffBat === 1
+              ? ""
+              : "s"
+          }`
+        : `Wicket — ${wicketType.replace(
+            "_",
+            " "
+          )}`;
 
-    await db.orm.public.MatchEvent.create({
-      matchId,
-      playerId: dismissedPlayerId,
-      teamId:
-        currentInnings.battingTeamId,
-      type: "WICKET",
-      data: JSON.stringify({
-        inningsId:
-          currentInnings.id,
-        overId: currentOver.id,
-        overNumber:
-          currentOver.overNumber,
-        ballNumber,
-        dismissedPlayerId,
-        wicketType,
-        score: currentInnings.runs,
-        wickets: newWickets,
-        legalBalls: newLegalBalls,
-        inningsComplete,
-        overComplete,
-      }),
-    });
+    await db.orm.public.MatchEvent.create(
+      {
+        matchId,
+        playerId:
+          dismissedPlayerId,
+        teamId:
+          currentInnings.battingTeamId,
+        type: "WICKET",
+        data: JSON.stringify({
+          inningsId:
+            currentInnings.id,
+          overId:
+            currentOver.id,
+          overNumber:
+            currentOver.overNumber,
+          ballNumber,
+          dismissedPlayerId,
+          wicketType,
+          runsOffBat,
+          extras: 0,
+          totalRuns,
+          score: newRuns,
+          wickets:
+            newWickets,
+          legalBalls:
+            newLegalBalls,
+          inningsComplete,
+          overComplete,
+          newBatsmanRequired,
+          freeHit,
+        }),
+      }
+    );
 
-    await db.orm.public.MatchEvent.create({
-      matchId,
-      playerId:
-        nextStrikerId || null,
-      teamId:
-        currentInnings.battingTeamId,
-      type: "INNINGS_STATE",
-      data: JSON.stringify({
-        inningsId:
-          currentInnings.id,
-        overId: currentOver.id,
-        overNumber:
-          currentOver.overNumber,
-        ballNumber,
-        strikerId:
-          nextStrikerId,
-        nonStrikerId:
-          nextNonStrikerId,
-        bowlerId:
-          currentOver.bowlerId,
-        score:
-          currentInnings.runs,
-        wickets: newWickets,
-        legalBalls: newLegalBalls,
-        overComplete,
-        inningsComplete,
-        lastAction,
-        deliveryType: "WICKET",
-        runsOffBat: 0,
-        extras: 0,
-        totalRuns: 0,
-      }),
-    });
+    await db.orm.public.MatchEvent.create(
+      {
+        matchId,
+        playerId:
+          nextStrikerId ||
+          null,
+        teamId:
+          currentInnings.battingTeamId,
+        type: "INNINGS_STATE",
+        data: JSON.stringify({
+          inningsId:
+            currentInnings.id,
+          overId:
+            currentOver.id,
+          overNumber:
+            currentOver.overNumber,
+          ballNumber,
+          strikerId:
+            nextStrikerId,
+          nonStrikerId:
+            nextNonStrikerId,
+          bowlerId:
+            currentOver.bowlerId,
+          score: newRuns,
+          wickets:
+            newWickets,
+          legalBalls:
+            newLegalBalls,
+          overComplete,
+          inningsComplete,
+          newBatsmanRequired,
+          lastAction,
+          deliveryType:
+            "WICKET",
+          runsOffBat,
+          extras: 0,
+          totalRuns,
+          freeHit: false,
+        }),
+      }
+    );
+
+    if (
+      targetReached &&
+      currentInnings.inningsNumber === 2
+    ) {
+      const firstInnings =
+        innings.find(
+          (item) =>
+            item.inningsNumber ===
+            1
+        );
+
+      if (!firstInnings) {
+        return NextResponse.json(
+          {
+            error:
+              "First innings could not be found.",
+          },
+          { status: 500 }
+        );
+      }
+
+      const wicketsRemaining =
+        Math.max(
+          config.playersPerTeam -
+            1 -
+            currentInnings.wickets,
+          0
+        );
+
+      const result =
+        `Won by ${wicketsRemaining} wicket${
+          wicketsRemaining === 1
+            ? ""
+            : "s"
+        }`;
+
+      await db.orm.public.Match
+        .where({
+          id: matchId,
+        })
+        .update({
+          winnerTeamId:
+            currentInnings.battingTeamId,
+          result,
+          status:
+            "COMPLETED",
+        });
+
+      await db.orm.public.MatchEvent.create(
+        {
+          matchId,
+          teamId:
+            currentInnings.battingTeamId,
+          type:
+            "MATCH_COMPLETED",
+          data: JSON.stringify({
+            inningsId:
+              currentInnings.id,
+            firstInningsId:
+              firstInnings.id,
+            firstInningsRuns:
+              firstInnings.runs,
+            secondInningsRuns:
+              newRuns,
+            winnerTeamId:
+              currentInnings.battingTeamId,
+            result,
+            reason:
+              "TARGET_REACHED",
+          }),
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: true,
+          matchCompleted:
+            true,
+          result,
+          delivery,
+          state: {
+            score: newRuns,
+            wickets:
+              newWickets,
+            legalBalls:
+              newLegalBalls,
+            overNumber:
+              currentOver.overNumber,
+            ballNumber,
+            strikerId:
+              nextStrikerId,
+            nonStrikerId:
+              nextNonStrikerId,
+            bowlerId:
+              currentOver.bowlerId,
+            overComplete:
+              false,
+            inningsComplete:
+              true,
+            newBatsmanRequired:
+              false,
+            lastAction:
+              result,
+            runsOffBat,
+            extras: 0,
+            totalRuns,
+            freeHit: false,
+          },
+        },
+        { status: 201 }
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
+        matchCompleted:
+          false,
+        inningsComplete,
         delivery,
         state: {
-          score: currentInnings.runs,
-          wickets: newWickets,
-          legalBalls: newLegalBalls,
+          score: newRuns,
+          wickets:
+            newWickets,
+          legalBalls:
+            newLegalBalls,
           overNumber:
             currentOver.overNumber,
           ballNumber,
@@ -516,17 +847,23 @@ export async function POST(
             currentOver.bowlerId,
           overComplete,
           inningsComplete,
-          newBatsmanRequired:
-            !inningsComplete,
+          newBatsmanRequired,
           dismissedPlayerId,
           wicketType,
           lastAction,
+          runsOffBat,
+          extras: 0,
+          totalRuns,
+          freeHit: false,
         },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Wicket API error:", error);
+    console.error(
+      "Wicket API error:",
+      error
+    );
 
     return NextResponse.json(
       {

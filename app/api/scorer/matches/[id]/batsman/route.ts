@@ -2,8 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 import db from "../../../../../../lib/db";
 
-type NewBatsmanRequest = {
+type BatsmanRequest = {
   newBatsmanId?: string;
+};
+
+type InningsStateData = {
+  inningsId?: string;
+  overId?: string;
+  overNumber?: number;
+  ballNumber?: number;
+  strikerId?: string;
+  nonStrikerId?: string;
+  bowlerId?: string;
+  score?: number;
+  wickets?: number;
+  legalBalls?: number;
+  overComplete?: boolean;
+  inningsComplete?: boolean;
+  lastAction?: string;
+  deliveryType?: string;
+  runsOffBat?: number;
+  extras?: number;
+  totalRuns?: number;
+  freeHit?: boolean;
 };
 
 export async function POST(
@@ -13,39 +34,48 @@ export async function POST(
   try {
     const { id: matchId } = await params;
 
-    const body = (await request.json()) as NewBatsmanRequest;
+    const body =
+      (await request.json()) as BatsmanRequest;
 
-    const newBatsmanId = body.newBatsmanId?.trim();
+    const newBatsmanId =
+      body.newBatsmanId?.trim();
 
     if (!newBatsmanId) {
       return NextResponse.json(
         {
-          error: "New batsman is required.",
+          error:
+            "New batsman is required.",
         },
         { status: 400 }
       );
     }
 
-    const scorer = await db.orm.public.User
-      .where({
-        email: "scorer@nmims.local",
-      })
-      .first();
+    const scorer =
+      await db.orm.public.User
+        .where({
+          email: "scorer@nmims.local",
+        })
+        .first();
 
-    if (!scorer || scorer.role !== "SCORER") {
+    if (
+      !scorer ||
+      scorer.role !== "SCORER"
+    ) {
       return NextResponse.json(
         {
-          error: "Scorer account not found.",
+          error:
+            "Scorer account not found.",
         },
         { status: 403 }
       );
     }
 
-    const match = await db.orm.public.Match
-      .where({
-        id: matchId,
-      })
-      .first();
+    const match =
+      await db.orm.public.Match
+        .where({
+          id: matchId,
+        })
+        .first();
 
     if (!match) {
       return NextResponse.json(
@@ -59,7 +89,8 @@ export async function POST(
     if (match.status !== "LIVE") {
       return NextResponse.json(
         {
-          error: "Only live matches can select a new batsman.",
+          error:
+            "Only live matches can select a new batsman.",
         },
         { status: 409 }
       );
@@ -97,20 +128,46 @@ export async function POST(
     if (innings.length === 0) {
       return NextResponse.json(
         {
-          error: "No innings has been started.",
+          error:
+            "No innings has been started.",
         },
         { status: 409 }
       );
     }
 
-    const currentInnings = [...innings].sort(
-      (a, b) => b.inningsNumber - a.inningsNumber
+    const currentInnings = [
+      ...innings,
+    ].sort(
+      (a, b) =>
+        b.inningsNumber -
+        a.inningsNumber
     )[0];
 
-    if (currentInnings.status !== "IN_PROGRESS") {
+    if (
+      currentInnings.status !==
+      "IN_PROGRESS"
+    ) {
       return NextResponse.json(
         {
-          error: "The current innings is not in progress.",
+          error:
+            "The current innings is not in progress.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const config =
+      await db.orm.public.CricketMatchConfig
+        .where({
+          matchId,
+        })
+        .first();
+
+    if (!config) {
+      return NextResponse.json(
+        {
+          error:
+            "Cricket match configuration not found.",
         },
         { status: 409 }
       );
@@ -123,108 +180,103 @@ export async function POST(
         })
         .all();
 
-    const newBatsman = matchPlayers.find(
-      (player) =>
-        player.playerId === newBatsmanId &&
-        player.role === "PLAYING" &&
-        player.teamId === currentInnings.battingTeamId
-    );
+    const newBatsman =
+      matchPlayers.find(
+        (item) =>
+          item.playerId ===
+            newBatsmanId &&
+          item.teamId ===
+            currentInnings.battingTeamId &&
+          item.role === "PLAYING"
+      );
 
     if (!newBatsman) {
       return NextResponse.json(
         {
           error:
-            "The selected player is not part of the batting Playing XI.",
+            "The selected player is not in the batting team's Playing XI.",
         },
         { status: 400 }
       );
     }
 
-    const matchEvents =
+    const allEvents =
       await db.orm.public.MatchEvent
         .where({
           matchId,
         })
         .all();
 
-    const inningsEvents = matchEvents
-      .filter((event) => {
-        if (!event.data) {
-          return false;
-        }
+    const stateEvents =
+      allEvents
+        .filter((event) => {
+          if (!event.data) {
+            return false;
+          }
 
-        try {
-          const data = JSON.parse(event.data) as {
-            inningsId?: string;
-          };
+          try {
+            const data =
+              JSON.parse(
+                event.data
+              ) as InningsStateData;
 
-          return data.inningsId === currentInnings.id;
-        } catch {
-          return false;
-        }
-      })
-      .sort(
-        (a, b) =>
-          b.timestamp.epochMilliseconds -
-          a.timestamp.epochMilliseconds
-      );
-
-    const latestInningsState =
-      inningsEvents.find(
-        (event) => event.type === "INNINGS_STATE"
-      );
-
-    let strikerId = "";
-    let nonStrikerId = "";
-    let bowlerId = "";
-    let overNumber = 1;
-    let ballNumber = currentInnings.legalBalls;
-    let overComplete = false;
-    let lastAction = "New batsman selected.";
-
-    if (latestInningsState?.data) {
-      try {
-        const state = JSON.parse(
-          latestInningsState.data
-        ) as {
-          strikerId?: string;
-          nonStrikerId?: string;
-          bowlerId?: string;
-          overNumber?: number;
-          ballNumber?: number;
-          overComplete?: boolean;
-        };
-
-        strikerId = state.strikerId ?? "";
-        nonStrikerId = state.nonStrikerId ?? "";
-        bowlerId = state.bowlerId ?? "";
-        overNumber = state.overNumber ?? 1;
-        ballNumber =
-          state.ballNumber ?? currentInnings.legalBalls;
-        overComplete = Boolean(state.overComplete);
-      } catch {
-        return NextResponse.json(
-          {
-            error: "Current innings state is invalid.",
-          },
-          { status: 409 }
+            return (
+              event.type ===
+                "INNINGS_STATE" &&
+              data.inningsId ===
+                currentInnings.id
+            );
+          } catch {
+            return false;
+          }
+        })
+        .sort(
+          (a, b) =>
+            b.timestamp.epochMilliseconds -
+            a.timestamp.epochMilliseconds
         );
-      }
-    } else {
+
+    if (stateEvents.length === 0) {
       return NextResponse.json(
         {
           error:
-            "Current innings state is unavailable.",
+            "Current innings state could not be found.",
         },
         { status: 409 }
       );
     }
 
-    if (!strikerId && !nonStrikerId) {
+    let currentState: InningsStateData;
+
+    try {
+      currentState =
+        JSON.parse(
+          stateEvents[0].data ?? "{}"
+        ) as InningsStateData;
+    } catch {
       return NextResponse.json(
         {
           error:
-            "No batting position is available for the new batsman.",
+            "Current innings state is invalid.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const strikerId =
+      currentState.strikerId ?? "";
+
+    const nonStrikerId =
+      currentState.nonStrikerId ?? "";
+
+    const bowlerId =
+      currentState.bowlerId ?? "";
+
+    if (!bowlerId) {
+      return NextResponse.json(
+        {
+          error:
+            "Current bowler could not be determined.",
         },
         { status: 409 }
       );
@@ -243,65 +295,218 @@ export async function POST(
       );
     }
 
-    let replacementPosition:
-      | "STRIKER"
-      | "NON_STRIKER";
+    const dismissedEvents =
+      allEvents
+        .filter(
+          (event) =>
+            event.type === "WICKET" &&
+            event.data
+        )
+        .sort(
+          (a, b) =>
+            b.timestamp.epochMilliseconds -
+            a.timestamp.epochMilliseconds
+        );
 
-    if (!strikerId) {
-      strikerId = newBatsmanId;
-      replacementPosition = "STRIKER";
-    } else if (!nonStrikerId) {
-      nonStrikerId = newBatsmanId;
-      replacementPosition = "NON_STRIKER";
-    } else {
+    const dismissedPlayerIds =
+      new Set<string>();
+
+    for (
+      const event of dismissedEvents
+    ) {
+      try {
+        const data =
+          JSON.parse(
+            event.data ?? "{}"
+          ) as {
+            inningsId?: string;
+            dismissedPlayerId?: string;
+          };
+
+        if (
+          data.inningsId ===
+            currentInnings.id &&
+          data.dismissedPlayerId
+        ) {
+          dismissedPlayerIds.add(
+            data.dismissedPlayerId
+          );
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (
+      dismissedPlayerIds.has(
+        newBatsmanId
+      )
+    ) {
       return NextResponse.json(
         {
           error:
-            "Both batting positions are already occupied.",
+            "The selected player has already been dismissed.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const availablePlayingPlayers =
+      matchPlayers.filter(
+        (item) =>
+          item.teamId ===
+            currentInnings.battingTeamId &&
+          item.role === "PLAYING"
+      );
+
+    if (
+      dismissedPlayerIds.size >=
+      config.playersPerTeam - 1
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "No batting slot is available for another batsman.",
         },
         { status: 409 }
       );
     }
 
-    lastAction = `New batsman — ${replacementPosition.toLowerCase().replace("_", " ")}`;
+    let nextStrikerId =
+      strikerId;
+
+    let nextNonStrikerId =
+      nonStrikerId;
+
+    if (!nextStrikerId) {
+      nextStrikerId =
+        newBatsmanId;
+    } else if (!nextNonStrikerId) {
+      nextNonStrikerId =
+        newBatsmanId;
+    } else {
+      return NextResponse.json(
+        {
+          error:
+            "There is no empty batting position for the new batsman.",
+        },
+        { status: 409 }
+      );
+    }
+
+    if (
+      !availablePlayingPlayers.some(
+        (item) =>
+          item.playerId ===
+          nextStrikerId
+      ) ||
+      !availablePlayingPlayers.some(
+        (item) =>
+          item.playerId ===
+          nextNonStrikerId
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "The current batting state contains an invalid player.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const overId =
+      currentState.overId ?? null;
+
+    const overNumber =
+      currentState.overNumber ?? 1;
+
+    const ballNumber =
+      currentState.ballNumber ?? 0;
+
+    const score =
+      currentState.score ??
+      currentInnings.runs;
+
+    const wickets =
+      currentState.wickets ??
+      currentInnings.wickets;
+
+    const legalBalls =
+      currentState.legalBalls ??
+      currentInnings.legalBalls;
+
+    const overComplete =
+      currentState.overComplete ??
+      false;
+
+    const inningsComplete =
+      currentState.inningsComplete ??
+      false;
+
+    const freeHit =
+      currentState.freeHit ??
+      false;
+
+    const lastAction =
+      "New batsman selected.";
 
     await db.orm.public.MatchEvent.create({
       matchId,
       playerId: newBatsmanId,
-      teamId: currentInnings.battingTeamId,
+      teamId:
+        currentInnings.battingTeamId,
       type: "BATSMAN_REPLACED",
       data: JSON.stringify({
-        inningsId: currentInnings.id,
-        newBatsmanId,
-        replacementPosition,
+        inningsId:
+          currentInnings.id,
+        overId,
         overNumber,
         ballNumber,
+        strikerId:
+          nextStrikerId,
+        nonStrikerId:
+          nextNonStrikerId,
+        bowlerId,
+        newBatsmanId,
+        score,
+        wickets,
+        legalBalls,
+        freeHit,
       }),
     });
 
     await db.orm.public.MatchEvent.create({
       matchId,
-      playerId: newBatsmanId,
-      teamId: currentInnings.battingTeamId,
+      playerId:
+        nextStrikerId ||
+        newBatsmanId,
+      teamId:
+        currentInnings.battingTeamId,
       type: "INNINGS_STATE",
       data: JSON.stringify({
-        inningsId: currentInnings.id,
-        overId: null,
+        inningsId:
+          currentInnings.id,
+        overId,
         overNumber,
         ballNumber,
-        strikerId,
-        nonStrikerId,
+        strikerId:
+          nextStrikerId,
+        nonStrikerId:
+          nextNonStrikerId,
         bowlerId,
-        score: currentInnings.runs,
-        wickets: currentInnings.wickets,
-        legalBalls: currentInnings.legalBalls,
+        score,
+        wickets,
+        legalBalls,
         overComplete,
-        inningsComplete: false,
+        inningsComplete,
         lastAction,
-        deliveryType: "BATSMAN_REPLACED",
+        deliveryType:
+          "BATSMAN_REPLACED",
         runsOffBat: 0,
         extras: 0,
         totalRuns: 0,
+        freeHit,
       }),
     });
 
@@ -309,18 +514,20 @@ export async function POST(
       {
         success: true,
         state: {
-          score: currentInnings.runs,
-          wickets: currentInnings.wickets,
-          legalBalls: currentInnings.legalBalls,
+          score,
+          wickets,
+          legalBalls,
           overNumber,
           ballNumber,
-          strikerId,
-          nonStrikerId,
+          strikerId:
+            nextStrikerId,
+          nonStrikerId:
+            nextNonStrikerId,
           bowlerId,
           overComplete,
-          newBatsmanRequired: false,
+          inningsComplete,
           lastAction,
-          replacementPosition,
+          freeHit,
         },
       },
       { status: 201 }
@@ -333,7 +540,8 @@ export async function POST(
 
     return NextResponse.json(
       {
-        error: "Failed to select new batsman.",
+        error:
+          "Failed to select the new batsman.",
       },
       { status: 500 }
     );

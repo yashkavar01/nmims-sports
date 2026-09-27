@@ -17,27 +17,62 @@ type DeliveryRequest = {
   runsOffBat?: number;
 };
 
-const VALID_RUNS = new Set([0, 1, 2, 3, 4, 6]);
+type InningsStateData = {
+  inningsId?: string;
+  overId?: string | null;
+  overNumber?: number;
+  ballNumber?: number;
+  strikerId?: string;
+  nonStrikerId?: string;
+  bowlerId?: string;
+  score?: number;
+  wickets?: number;
+  legalBalls?: number;
+  overComplete?: boolean;
+  inningsComplete?: boolean;
+  freeHit?: boolean;
+};
 
-const VALID_DELIVERY_TYPES = new Set<DeliveryType>([
-  "NORMAL",
-  "WIDE",
-  "NO_BALL",
-  "BYE",
-  "LEG_BYE",
+const VALID_RUNS = new Set([
+  0,
+  1,
+  2,
+  3,
+  4,
+  6,
 ]);
+
+const VALID_DELIVERY_TYPES =
+  new Set<DeliveryType>([
+    "NORMAL",
+    "WIDE",
+    "NO_BALL",
+    "BYE",
+    "LEG_BYE",
+  ]);
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{ id: string }>;
+  }
 ) {
   try {
     const { id: matchId } = await params;
-    const body = (await request.json()) as DeliveryRequest;
 
-    const strikerId = body.strikerId?.trim();
-    const nonStrikerId = body.nonStrikerId?.trim();
-    const bowlerId = body.bowlerId?.trim();
+    const body =
+      (await request.json()) as DeliveryRequest;
+
+    const strikerId =
+      body.strikerId?.trim();
+
+    const nonStrikerId =
+      body.nonStrikerId?.trim();
+
+    const bowlerId =
+      body.bowlerId?.trim();
 
     const deliveryType: DeliveryType =
       body.deliveryType ?? "NORMAL";
@@ -47,7 +82,11 @@ export async function POST(
         ? body.runsOffBat
         : 0;
 
-    if (!strikerId || !nonStrikerId || !bowlerId) {
+    if (
+      !strikerId ||
+      !nonStrikerId ||
+      !bowlerId
+    ) {
       return NextResponse.json(
         {
           error:
@@ -67,7 +106,11 @@ export async function POST(
       );
     }
 
-    if (!VALID_DELIVERY_TYPES.has(deliveryType)) {
+    if (
+      !VALID_DELIVERY_TYPES.has(
+        deliveryType
+      )
+    ) {
       return NextResponse.json(
         {
           error: "Invalid delivery type.",
@@ -109,10 +152,14 @@ export async function POST(
         })
         .first();
 
-    if (!scorer || scorer.role !== "SCORER") {
+    if (
+      !scorer ||
+      scorer.role !== "SCORER"
+    ) {
       return NextResponse.json(
         {
-          error: "Scorer account not found.",
+          error:
+            "Scorer account not found.",
         },
         { status: 403 }
       );
@@ -176,19 +223,25 @@ export async function POST(
     if (innings.length === 0) {
       return NextResponse.json(
         {
-          error: "No innings has been started.",
+          error:
+            "No innings has been started.",
         },
         { status: 409 }
       );
     }
 
-    const currentInnings = [...innings].sort(
+    const currentInnings = [
+      ...innings,
+    ].sort(
       (a, b) =>
         b.inningsNumber -
         a.inningsNumber
     )[0];
 
-    if (currentInnings.status !== "IN_PROGRESS") {
+    if (
+      currentInnings.status !==
+      "IN_PROGRESS"
+    ) {
       return NextResponse.json(
         {
           error:
@@ -200,7 +253,8 @@ export async function POST(
 
     if (
       currentInnings.target !== null &&
-      currentInnings.runs >= currentInnings.target
+      currentInnings.runs >=
+        currentInnings.target
     ) {
       return NextResponse.json(
         {
@@ -246,27 +300,27 @@ export async function POST(
       );
     }
 
-    const openingEvents =
+    const matchEvents =
       await db.orm.public.MatchEvent
         .where({
           matchId,
-          type: "INNINGS_OPENING_SETUP",
         })
         .all();
 
-    const inningsOpeningEvents =
-      openingEvents
+    const inningsEvents =
+      matchEvents
         .filter((event) => {
           if (!event.data) {
             return false;
           }
 
           try {
-            const data = JSON.parse(
-              event.data
-            ) as {
-              inningsId?: string;
-            };
+            const data =
+              JSON.parse(
+                event.data
+              ) as {
+                inningsId?: string;
+              };
 
             return (
               data.inningsId ===
@@ -282,9 +336,43 @@ export async function POST(
             a.timestamp.epochMilliseconds
         );
 
-    if (
-      inningsOpeningEvents.length === 0
-    ) {
+    const latestInningsState =
+      inningsEvents.find(
+        (event) =>
+          event.type ===
+          "INNINGS_STATE"
+      );
+
+    let freeHit = false;
+
+    if (latestInningsState?.data) {
+      try {
+        const state =
+          JSON.parse(
+            latestInningsState.data
+          ) as InningsStateData;
+
+        freeHit =
+          Boolean(state.freeHit);
+      } catch {
+        return NextResponse.json(
+          {
+            error:
+              "Current innings state is invalid.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    const openingEvents =
+      inningsEvents.filter(
+        (event) =>
+          event.type ===
+          "INNINGS_OPENING_SETUP"
+      );
+
+    if (openingEvents.length === 0) {
       return NextResponse.json(
         {
           error:
@@ -312,7 +400,9 @@ export async function POST(
       );
     }
 
-    const currentOver = [...overs].sort(
+    const currentOver = [
+      ...overs,
+    ].sort(
       (a, b) =>
         b.overNumber -
         a.overNumber
@@ -327,10 +417,14 @@ export async function POST(
 
     const legalDeliveriesInOver =
       deliveries.filter(
-        (delivery) => delivery.legalBall
+        (delivery) =>
+          delivery.legalBall
       );
 
-    if (legalDeliveriesInOver.length >= 6) {
+    if (
+      legalDeliveriesInOver.length >=
+      6
+    ) {
       return NextResponse.json(
         {
           error:
@@ -357,7 +451,8 @@ export async function POST(
     const striker =
       playingPlayers.find(
         (player) =>
-          player.playerId === strikerId &&
+          player.playerId ===
+            strikerId &&
           player.teamId ===
             currentInnings.battingTeamId
       );
@@ -374,7 +469,8 @@ export async function POST(
     const bowler =
       playingPlayers.find(
         (player) =>
-          player.playerId === bowlerId &&
+          player.playerId ===
+            bowlerId &&
           player.teamId ===
             currentInnings.bowlingTeamId
       );
@@ -430,10 +526,8 @@ export async function POST(
       deliveries.length + 1;
 
     const legalBall =
-      deliveryType === "WIDE" ||
-      deliveryType === "NO_BALL"
-        ? false
-        : true;
+      deliveryType !== "WIDE" &&
+      deliveryType !== "NO_BALL";
 
     const extras =
       deliveryType === "WIDE" ||
@@ -447,30 +541,36 @@ export async function POST(
       runsOffBat + extras;
 
     const delivery =
-      await db.orm.public.CricketDelivery.create({
-        inningsId:
-          currentInnings.id,
-        overId: currentOver.id,
-        ballNumber,
-        legalBall,
-        strikerId,
-        nonStrikerId,
-        bowlerId,
-        runsOffBat,
-        extras,
-        totalRuns,
-        extraType:
-          deliveryType === "NORMAL"
-            ? null
-            : deliveryType,
-        wicket: false,
-        wicketType: null,
-        dismissedPlayerId: null,
-        data: JSON.stringify({
-          scorerId: scorer.id,
-          deliveryType,
-        }),
-      });
+      await db.orm.public.CricketDelivery.create(
+        {
+          inningsId:
+            currentInnings.id,
+          overId:
+            currentOver.id,
+          ballNumber,
+          legalBall,
+          strikerId,
+          nonStrikerId,
+          bowlerId,
+          runsOffBat,
+          extras,
+          totalRuns,
+          extraType:
+            deliveryType === "NORMAL"
+              ? null
+              : deliveryType,
+          wicket: false,
+          wicketType: null,
+          dismissedPlayerId:
+            null,
+          data: JSON.stringify({
+            scorerId:
+              scorer.id,
+            deliveryType,
+            freeHit,
+          }),
+        }
+      );
 
     const nextRuns =
       currentInnings.runs +
@@ -481,7 +581,8 @@ export async function POST(
       (legalBall ? 1 : 0);
 
     const targetReached =
-      currentInnings.target !== null &&
+      currentInnings.target !==
+        null &&
       nextRuns >=
         currentInnings.target;
 
@@ -504,14 +605,17 @@ export async function POST(
             : "IN_PROGRESS",
       });
 
-    let nextStrikerId = strikerId;
+    let nextStrikerId =
+      strikerId;
+
     let nextNonStrikerId =
       nonStrikerId;
 
     const runsForRotation =
       deliveryType === "NORMAL"
         ? runsOffBat
-        : deliveryType === "BYE" ||
+        : deliveryType ===
+              "BYE" ||
             deliveryType ===
               "LEG_BYE"
           ? extras
@@ -523,6 +627,7 @@ export async function POST(
     ) {
       nextStrikerId =
         nonStrikerId;
+
       nextNonStrikerId =
         strikerId;
     }
@@ -563,7 +668,8 @@ export async function POST(
       deliveryType ===
       "WIDE"
     ) {
-      lastAction = "Wide +1";
+      lastAction =
+        "Wide +1";
     } else if (
       deliveryType ===
       "NO_BALL"
@@ -584,42 +690,57 @@ export async function POST(
         "Leg Bye +1";
     }
 
-    await db.orm.public.MatchEvent.create({
-      matchId,
-      playerId: strikerId,
-      teamId:
-        currentInnings.battingTeamId,
-      type: "INNINGS_STATE",
-      data: JSON.stringify({
-        inningsId:
-          currentInnings.id,
-        overId:
-          currentOver.id,
-        overNumber:
-          currentOver.overNumber,
-        ballNumber,
-        strikerId:
-          nextStrikerId,
-        nonStrikerId:
-          nextNonStrikerId,
-        bowlerId,
-        score: nextRuns,
-        wickets:
-          currentInnings.wickets,
-        legalBalls:
-          nextLegalBalls,
-        overComplete:
-          targetReached ||
-          maximumOversReached
-            ? false
-            : overComplete,
-        lastAction,
-        deliveryType,
-        runsOffBat,
-        extras,
-        totalRuns,
-      }),
-    });
+    const nextFreeHit =
+      deliveryType ===
+      "NO_BALL"
+        ? true
+        : legalBall
+          ? false
+          : freeHit;
+
+    await db.orm.public.MatchEvent.create(
+      {
+        matchId,
+        playerId: strikerId,
+        teamId:
+          currentInnings.battingTeamId,
+        type: "INNINGS_STATE",
+        data: JSON.stringify({
+          inningsId:
+            currentInnings.id,
+          overId:
+            currentOver.id,
+          overNumber:
+            currentOver.overNumber,
+          ballNumber,
+          strikerId:
+            nextStrikerId,
+          nonStrikerId:
+            nextNonStrikerId,
+          bowlerId,
+          score: nextRuns,
+          wickets:
+            currentInnings.wickets,
+          legalBalls:
+            nextLegalBalls,
+          overComplete:
+            targetReached ||
+            maximumOversReached
+              ? false
+              : overComplete,
+          inningsComplete:
+            targetReached ||
+            maximumOversReached,
+          freeHit:
+            nextFreeHit,
+          lastAction,
+          deliveryType,
+          runsOffBat,
+          extras,
+          totalRuns,
+        }),
+      }
+    );
 
     if (
       targetReached &&
@@ -666,32 +787,33 @@ export async function POST(
           winnerTeamId:
             currentInnings.battingTeamId,
           result,
-          status:
-            "COMPLETED",
+          status: "COMPLETED",
         });
 
-      await db.orm.public.MatchEvent.create({
-        matchId,
-        teamId:
-          currentInnings.battingTeamId,
-        type:
-          "MATCH_COMPLETED",
-        data: JSON.stringify({
-          inningsId:
-            currentInnings.id,
-          firstInningsId:
-            firstInnings.id,
-          firstInningsRuns:
-            firstInnings.runs,
-          secondInningsRuns:
-            nextRuns,
-          winnerTeamId:
+      await db.orm.public.MatchEvent.create(
+        {
+          matchId,
+          teamId:
             currentInnings.battingTeamId,
-          result,
-          reason:
-            "TARGET_REACHED",
-        }),
-      });
+          type:
+            "MATCH_COMPLETED",
+          data: JSON.stringify({
+            inningsId:
+              currentInnings.id,
+            firstInningsId:
+              firstInnings.id,
+            firstInningsRuns:
+              firstInnings.runs,
+            secondInningsRuns:
+              nextRuns,
+            winnerTeamId:
+              currentInnings.battingTeamId,
+            result,
+            reason:
+              "TARGET_REACHED",
+          }),
+        }
+      );
 
       return NextResponse.json(
         {
@@ -713,8 +835,10 @@ export async function POST(
             nonStrikerId:
               nextNonStrikerId,
             bowlerId,
-            overComplete:
-              false,
+            overComplete: false,
+            inningsComplete: true,
+            freeHit:
+              nextFreeHit,
             lastAction:
               "Target reached.",
             deliveryType,
@@ -752,6 +876,11 @@ export async function POST(
             maximumOversReached
               ? true
               : overComplete,
+          inningsComplete:
+            targetReached ||
+            maximumOversReached,
+          freeHit:
+            nextFreeHit,
           lastAction,
           deliveryType,
           runsOffBat,
